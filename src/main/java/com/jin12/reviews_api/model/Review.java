@@ -1,9 +1,36 @@
 package com.jin12.reviews_api.model;
 
 
-//@Entity
-//@Table(name = "reviews")
-public class Review {
+import jakarta.persistence.*;
+import lombok.Data;
 
+import java.time.LocalDate;
+import java.util.List;
+
+@Entity
+@Data
+@Table(name = "reviews")
+public class Review {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column
+    private String reviewText;
+
+    @Column(nullable = false)
+    private long rating;
+
+    @Column(nullable = false)
+    private LocalDate date;
+
+    @Column(nullable = false)
+    private boolean generatedByAI;
+
+    @ManyToOne
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
 }
