@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Data
@@ -26,6 +25,13 @@ public class Product {
 //    @Column(nullable = false)
 //    private Set<String> tags;
 
+    @Column(nullable = false)
+    private String tags;
+
     @OneToMany
     private List<Review> reviews;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }

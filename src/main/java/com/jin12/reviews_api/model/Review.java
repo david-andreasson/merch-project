@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Entity
 @Data
@@ -22,7 +21,7 @@ public class Review {
     private String reviewText;
 
     @Column(nullable = false)
-    private long rating;
+    private int rating;
 
     @Column(nullable = false)
     private LocalDate date;
