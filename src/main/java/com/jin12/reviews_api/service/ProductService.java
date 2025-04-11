@@ -19,15 +19,15 @@ public class ProductService {
         return productRepository.save(product);  // Spara produkten i databasen och returnera den.
     }
 
-    public void deleteProduct(Long productId) {
+    public void deleteProduct(String productId) {
         // Kontrollera om produkten finns innan borttagning
         if (productRepository.existsById(productId)) {
             productRepository.deleteById(productId);  // Ta bort produkten från databasen
         }
     }
 
-    public Product getProductById(Long productId) {
-        return productRepository.findById(productId)
+    public Product getProductById(String productId) {
+        return productRepository.findByProductId(productId)
                 .orElseThrow(() -> new RuntimeException("Produkt med ID " + productId + " finns inte.")); // Hämta produkten
     }
 

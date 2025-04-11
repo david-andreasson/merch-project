@@ -9,7 +9,7 @@ import java.util.List;
 @NoArgsConstructor
 public class ProductInfo {
     private String mode;
-    private long productId;
+    private String productId;
     private String productInfoUrl;
     private String productName;
     private String category;

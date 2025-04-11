@@ -20,7 +20,7 @@ public class ReviewService {
         this.productRepository = productRepository;
     }
 
-    public Review addReview(Long productId, Review review) {
+    public Review addReview(String productId, Review review) {
         // Hämta produkt baserat på productId
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Produkt finns inte"));
@@ -35,7 +35,7 @@ public class ReviewService {
         reviewRepository.deleteById(reviewId);  // Ta bort recensionen från databasen
     }
 
-    public List<Review> getRecentReviews(Long productId) {
+    public List<Review> getRecentReviews(String productId) {
         // Hämta produkt baserat på productId
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Produkt finns inte"));

@@ -2,30 +2,27 @@ package com.jin12.reviews_api.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Entity
 @Data
 @Table(name = "products")
+@NoArgsConstructor
 public class Product {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
+    @Id
     @Column(nullable = false)
-    private Long productId;
+    private String productId;
 
     @Column(nullable = false)
     private String productName;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String category;
 
-//    @Column(nullable = false)
-//    private Set<String> tags;
-
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String tags;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
