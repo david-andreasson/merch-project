@@ -27,7 +27,8 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @OneToMany
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+
     private List<Product> products;
 
     @Override
