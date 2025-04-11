@@ -28,7 +28,7 @@ public class Product {
     @Column(nullable = false)
     private String tags;
 
-    @OneToMany
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviews;
 
     @ManyToOne
