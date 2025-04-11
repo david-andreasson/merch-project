@@ -16,6 +16,6 @@ public class User {
     @Column(nullable = false)
     private String username;
 
-//    @ManyToOne
-//    private List<Product> products;
+    @OneToMany
+    private List<Product> products;
 }
