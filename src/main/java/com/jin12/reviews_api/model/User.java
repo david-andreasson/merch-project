@@ -16,6 +16,6 @@ public class User {
     @Column(nullable = false)
     private String username;
 
-    @OneToMany
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Product> products;
 }
