@@ -18,14 +18,19 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductController {
     private final ProductService productService;
-    private final UserService userService;
+//    private final UserService userService;
+
+    //TODO implement @GetMapping
 
     @PostMapping
-    public ResponseEntity<List<Product>> addProducts(@RequestBody ProductInfo productInfo) {
+    public ResponseEntity<Product> addProducts(@RequestBody ProductInfo productInfo,
+                                                     @AuthenticationPrincipal UserDetails userDetails) {
+        User user = (User) userDetails;
+
         Product product;
         switch (productInfo.getMode()) {
             case "productOnly":
-                product = handleProductOnly(productInfo);
+                product = handleProductOnly(productInfo, user);
                 break;
             case "withUrl":
                 break;
@@ -34,17 +39,32 @@ public class ProductController {
             case "customReview":
                 break;
             default:
+                product = new Product();
         }
-        return ResponseEntity.ok(List.of());
+        //TODO return valuable information
+        return ResponseEntity.ok(null);
     }
 
-    private Product handleProductOnly(ProductInfo productInfo) {
-        //TODO unik nyckel för Product blir userId + productId
-        //TODO ta reda på hur man kan få tag på userId
-        Product product = new Product();
-//        product =
+    private Product handleProductOnly(ProductInfo productInfo, User user) {
+        String productId = user.getId() + productInfo.getProductId();
+        Product product;
 
-//        productService.getProductById();
+        try {
+            product = productService.getProductById(productId);
+            return product;
+        } catch (Exception e) {
+            //TODO random data till skapandet av product
+            product = new Product().builder()
+                    .productId(productId)
+                    .productName("Whitesnake T-shirt")
+                    .category("T-shirt")
+                    .tags("hårdrock, 80-tal, svart, bomull")
+                    .user(user)
+                    .build();
+            productService.addProduct(product);
+        }
+        //TODO: Skicka till review
+
         return product;
     }
 }

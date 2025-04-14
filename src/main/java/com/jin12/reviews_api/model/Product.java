@@ -1,6 +1,8 @@
 package com.jin12.reviews_api.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -8,15 +10,17 @@ import java.util.List;
 
 @Entity
 @Data
+@Builder
 @Table(name = "products")
 @NoArgsConstructor
+@AllArgsConstructor
 public class Product {
 
     @Id
     @Column(nullable = false)
     private String productId;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String productName;
 
     @Column(nullable = true)
