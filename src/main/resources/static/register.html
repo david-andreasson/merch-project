@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrera konto</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            text-align: left;
+            border: 1px solid #ccc;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label, select, input {
+            display: block;
+            margin-bottom: 1rem;
+            width: 100%;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Registrera konto</h1>
+    <form id="registerForm">
+        <label for="username">Användarnamn:</label>
+        <input type="text" id="username" name="username" required>
+
+        <label for="password">Lösenord:</label>
+        <input type="password" id="password" name="password" required>
+
+        <label for="authType">Autentiseringstyp:</label>
+        <select id="authType" name="authType">
+            <option value="USERNAME_PASSWORD">Användarnamn/Lösenord</option>
+            <option value="API_KEY">API-nyckel</option>
+        </select>
+
+        <button type="submit">Registrera</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById("registerForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const authType = document.getElementById("authType").value;
+
+        const response = await fetch("/auth/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ username, password, authType })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            if (authType === "API_KEY") {
+                window.location.href = `/register-success.html?username=${encodeURIComponent(username)}&apiKey=${encodeURIComponent(data.apiKey)}`;
+            } else {
+                window.location.href = `/register-success.html?username=${encodeURIComponent(username)}`;
+            }
+        } else {
+            alert("Registrering misslyckades!");
+        }
+    });
+</script>
+</body>
+</html>

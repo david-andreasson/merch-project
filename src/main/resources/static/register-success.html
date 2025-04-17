@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrering lyckades</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .api-key-box {
+            margin-top: 1rem;
+            font-weight: bold;
+            background: #f0f0f0;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        a.button-link {
+            display: inline-block;
+            margin-top: 2rem;
+            padding: 0.5rem 1rem;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Registrering lyckades!</h1>
+    <p id="message">Laddar information...</p>
+</div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const username = params.get("username");
+    const apiKey = params.get("apiKey");
+
+    const messageEl = document.getElementById("message");
+    if (apiKey) {
+        messageEl.innerHTML = `
+      <p>Ditt konto med användarnamn <strong>${username}</strong> är registrerat.</p>
+      <p class="api-key-box">Din API-nyckel: <br><code>${apiKey}</code></p>
+      <p><strong>OBS:</strong> Spara nyckeln! Den visas inte igen.</p>
+      <a class="button-link" href="/mockshop.html">Gå till butiken</a>
+    `;
+    } else {
+        messageEl.innerHTML = `
+      <p>Ditt konto <strong>${username}</strong> är registrerat. Du kan nu logga in med användarnamn och lösenord.</p>
+      <a class="button-link" href="/mockshop.html">Gå till butiken</a>
+    `;
+    }
+</script>
+</body>
+</html>

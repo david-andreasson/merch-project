@@ -28,7 +28,9 @@ public class AuthenticationService {
 
         userRepository.save(user);
         String token = jwtService.generateToken(user);
-        return new AuthenticationResponse(token);
+        return AuthenticationResponse.builder()
+                .token(token)
+                .build();
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
@@ -43,6 +45,8 @@ public class AuthenticationService {
                 .orElseThrow();
 
         String token = jwtService.generateToken(user);
-        return new AuthenticationResponse(token);
+        return AuthenticationResponse.builder()
+                .token(token)
+                .build();
     }
 }
