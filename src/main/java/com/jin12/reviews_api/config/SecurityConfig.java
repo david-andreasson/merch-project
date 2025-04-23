@@ -1,7 +1,6 @@
 package com.jin12.reviews_api.config;
 
 import com.jin12.reviews_api.security.JwtAuthenticationFilter;
-import com.jin12.reviews_api.security.ApiKeyAuthFilter;
 import com.jin12.reviews_api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -30,9 +29,6 @@ public class SecurityConfig {
     private JwtAuthenticationFilter jwtAuthFilter;
 
     @Autowired
-    private ApiKeyAuthFilter apiKeyAuthFilter;
-
-    @Autowired
     private UserService userService;
 
     @Bean
@@ -47,7 +43,6 @@ public class SecurityConfig {
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(apiKeyAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

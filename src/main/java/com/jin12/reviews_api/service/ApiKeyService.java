@@ -1,6 +1,7 @@
 package com.jin12.reviews_api.service;
 
 import com.jin12.reviews_api.model.ApiKey;
+import com.jin12.reviews_api.model.User;
 import com.jin12.reviews_api.repository.ApiKeyRepository;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.Optional;
 
 @Service
 public class ApiKeyService {
@@ -17,7 +19,7 @@ public class ApiKeyService {
         this.apiKeyRepository = apiKeyRepository;
     }
 
-    public String createApiKey() {
+    public String createApiKey(User user) {
         String rawKey = generateApiKey();
         String hashedKey = BCrypt.hashpw(rawKey, BCrypt.gensalt());
 
@@ -25,15 +27,18 @@ public class ApiKeyService {
         apiKey.setKeyHash(hashedKey);
         apiKey.setCreatedAt(LocalDateTime.now());
         apiKey.setExpiresAt(LocalDateTime.now().plusMonths(6));
+        apiKey.setUser(user);
 
         apiKeyRepository.save(apiKey);
-        return rawKey; // Return to user only once
+        return rawKey;
     }
 
-    public boolean isValid(String rawKey) {
+    public Optional<ApiKey> findValidKey(String rawKey) {
+        if (rawKey == null || rawKey.isBlank()) return Optional.empty();
         return apiKeyRepository.findAll().stream()
                 .filter(k -> k.getExpiresAt().isAfter(LocalDateTime.now()))
-                .anyMatch(k -> BCrypt.checkpw(rawKey, k.getKeyHash()));
+                .filter(k -> BCrypt.checkpw(rawKey, k.getKeyHash()))
+                .findFirst();
     }
 
     private String generateApiKey() {
