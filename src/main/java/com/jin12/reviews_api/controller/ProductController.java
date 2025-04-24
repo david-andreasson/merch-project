@@ -49,7 +49,7 @@ public class ProductController {
         Product product;
 
         try {
-//            product = productService.getProductById(productId);
+            product = productService.getProductById(productId);
             return ResponseEntity.badRequest().body("Product already exists");
         } catch (Exception e) {
             //TODO random data till skapandet av product
