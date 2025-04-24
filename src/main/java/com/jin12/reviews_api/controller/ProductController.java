@@ -12,6 +12,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/product")
 @RequiredArgsConstructor
@@ -34,6 +36,7 @@ public class ProductController {
             case "withUrl":
                 break;
             case "withDetails":
+                respons = handleWithDetails(productRequest, user);
                 break;
             case "customReview":
                 break;
@@ -44,7 +47,7 @@ public class ProductController {
         return respons;
     }
 
-    private ResponseEntity<Object> handleProductOnly(ProductRequest productRequest, User user) {
+    private ResponseEntity<Object> handleWithDetails(ProductRequest productRequest, User user) {
         String productId = user.getId() + productRequest.getProductId();
         Product product;
 
@@ -52,15 +55,19 @@ public class ProductController {
             product = productService.getProductById(productId);
             return ResponseEntity.badRequest().body("Product already exists");
         } catch (Exception e) {
-            //TODO random data till skapandet av product
+            StringBuilder tags = new StringBuilder();
+            for (String tag : productRequest.getTags()) {
+                tags.append(tag).append(", ");
+            }
             product = new Product().builder()
                     .productId(productId)
-                    .productName("Whitesnake T-shirt")
-                    .category("T-shirt")
-                    .tags("hårdrock, 80-tal, svart, bomull")
+                    .productName(productRequest.getProductName())
+                    .category(productRequest.getCategory())
+                    .tags(tags.toString())
                     .user(user)
                     .build();
             productService.addProduct(product);
+
         }
         //TODO: Skicka till review
 
@@ -71,5 +78,12 @@ public class ProductController {
                 .tags(product.getTags())
                 .build();
         return ResponseEntity.status(HttpStatus.CREATED).body(productRespons);
+    }
+
+    private ResponseEntity<Object> handleProductOnly(ProductRequest productRequest, User user) {
+        productRequest.setProductName("Whitesnake T-shirt");
+        productRequest.setCategory("T-shirt");
+        productRequest.setTags(List.of("hårdrock", "80-tal", "svart", "bomull"));
+        return handleWithDetails(productRequest, user);
     }
 }
