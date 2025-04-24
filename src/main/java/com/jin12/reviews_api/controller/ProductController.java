@@ -1,9 +1,7 @@
 package com.jin12.reviews_api.controller;
 
-import com.jin12.reviews_api.dto.ProductRespons;
-import com.jin12.reviews_api.dto.ReviewRequest;
+import com.jin12.reviews_api.dto.*;
 import com.jin12.reviews_api.model.Product;
-import com.jin12.reviews_api.dto.ProductRequest;
 import com.jin12.reviews_api.model.Review;
 import com.jin12.reviews_api.model.User;
 import com.jin12.reviews_api.service.ProductService;
@@ -15,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -26,6 +25,45 @@ public class ProductController {
 //    private final UserService userService;
 
     //TODO implement @GetMapping
+
+    /***
+     * TODO Är det mening att vi ska returnare alla reviews som finns för produkten vid varje
+     * TODO scenario, eller är det meningen att ha en Get /product som får in id och sedan returnerar
+     * TODO alla reviews som finns
+    ***/
+    @GetMapping
+    public ResponseEntity<Object> getReviews(@RequestBody ProductRequest productRequest,
+                                             @AuthenticationPrincipal UserDetails userDetails) {
+        User user = (User) userDetails;
+        String productId = user.getId() + productRequest.getProductId();
+
+        try {
+            List<Review> reviews = reviewService.getRecentReviews(productId);
+            List<ReviewRespons> reviewResponses = new ArrayList<>();
+
+            double totalRating = 0;
+            for (Review review : reviews) {
+                reviewResponses.add(
+                        ReviewRespons.builder()
+                        .date(review.getDate())
+                        .name(review.getName())
+                        .rating(review.getRating())
+                        .text(review.getReviewText())
+                        .build());
+                totalRating += review.getRating();
+            }
+
+            ReviewsRespons reviewsRespons = ReviewsRespons.builder()
+                    .productId(productRequest.getProductId())
+                    .averageRating(totalRating / reviews.size())
+                    .reviews(reviewResponses)
+                    .build();
+
+            return ResponseEntity.ok(reviewsRespons);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Product do not exist");
+        }
+    }
 
     @PostMapping
     public ResponseEntity<Object> addProducts(@RequestBody ProductRequest productRequest,
@@ -82,7 +120,7 @@ public class ProductController {
             for (String tag : productRequest.getTags()) {
                 tags.append(tag).append(", ");
             }
-            product = new Product().builder()
+            product = Product.builder()
                     .productId(productId)
                     .productName(productRequest.getProductName())
                     .category(productRequest.getCategory())
