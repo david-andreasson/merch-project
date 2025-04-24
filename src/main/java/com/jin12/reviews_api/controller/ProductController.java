@@ -1,10 +1,13 @@
 package com.jin12.reviews_api.controller;
 
 import com.jin12.reviews_api.dto.ProductRespons;
+import com.jin12.reviews_api.dto.ReviewRequest;
 import com.jin12.reviews_api.model.Product;
 import com.jin12.reviews_api.dto.ProductRequest;
+import com.jin12.reviews_api.model.Review;
 import com.jin12.reviews_api.model.User;
 import com.jin12.reviews_api.service.ProductService;
+import com.jin12.reviews_api.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,13 +22,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductController {
     private final ProductService productService;
+    private final ReviewService reviewService;
 //    private final UserService userService;
 
     //TODO implement @GetMapping
 
     @PostMapping
     public ResponseEntity<Object> addProducts(@RequestBody ProductRequest productRequest,
-                                                      @AuthenticationPrincipal UserDetails userDetails) {
+                                              @AuthenticationPrincipal UserDetails userDetails) {
         User user = (User) userDetails;
 
         ResponseEntity<Object> respons = null;
@@ -39,12 +43,31 @@ public class ProductController {
                 respons = handleWithDetails(productRequest, user);
                 break;
             case "customReview":
+                respons = handleCustomReview(productRequest, user);
                 break;
             default:
 //                respons = new Product();
         }
 
         return respons;
+    }
+
+    private ResponseEntity<Object> handleCustomReview(ProductRequest productRequest, User user) {
+        String productId = user.getId() + productRequest.getProductId();
+
+        try {
+            Product product = productService.getProductById(productId);
+            ReviewRequest reviewRequest = productRequest.getReview();
+            Review review = new Review(
+                    reviewRequest.getName(),
+                    reviewRequest.getText(),
+                    reviewRequest.getRating(),
+                    false);
+            reviewService.addReview(productId, review);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Review added successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Product do not exist");
+        }
     }
 
     private ResponseEntity<Object> handleWithDetails(ProductRequest productRequest, User user) {
