@@ -29,6 +29,7 @@ public class Product {
     @Column(nullable = true)
     private String tags;
 
+    // Tar man bort en product kommer alla reviews att tas bort med hjälp av cascade och orphanRemoval
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviews;
 

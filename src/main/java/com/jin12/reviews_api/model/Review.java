@@ -3,12 +3,14 @@ package com.jin12.reviews_api.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
 @Entity
 @Data
 @Table(name = "reviews")
+@NoArgsConstructor
 public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,4 +34,11 @@ public class Review {
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
+
+    public Review(String name, String reviewText, int rating, boolean generatedByAI) {
+        this.name = name;
+        this.reviewText = reviewText;
+        this.rating = rating;
+        this.generatedByAI = generatedByAI;
+    }
 }
