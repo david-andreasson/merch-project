@@ -1,8 +1,12 @@
 package com.jin12.reviews_api.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import java.time.LocalDateTime;
 
+@Setter
+@Getter
 @Entity
 public class ApiKey {
     @Id
@@ -18,13 +22,7 @@ public class ApiKey {
     @Column(nullable = false)
     private LocalDateTime expiresAt;
 
-    public Long getId() { return id; }
-    public String getKeyHash() { return keyHash; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getExpiresAt() { return expiresAt; }
-
-    public void setId(Long id) { this.id = id; }
-    public void setKeyHash(String keyHash) { this.keyHash = keyHash; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }
