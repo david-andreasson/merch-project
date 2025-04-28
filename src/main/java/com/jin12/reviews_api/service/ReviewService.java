@@ -1,5 +1,6 @@
 package com.jin12.reviews_api.service;
 
+import com.jin12.reviews_api.dto.ReviewStatsResponse;
 import com.jin12.reviews_api.model.Product;
 import com.jin12.reviews_api.model.Review;
 import com.jin12.reviews_api.repository.ProductRepository;
@@ -63,6 +64,43 @@ public class ReviewService {
 
         // Returnerar både gamla och nygenererade recensioner
         return allRecentReviews;
+    }
+
+    // Hämta statistik + senaste recensioner
+    public ReviewStatsResponse getProductStats(String productId) {
+        // Hämta produkten
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Produkt finns inte"));
+
+        // Definiera två månader bakåt
+        LocalDate twoMonthsAgo = LocalDate.now().minusMonths(2);
+
+        // Hämta recensioner från senaste två månaderna
+        List<Review> recentReviews = reviewRepository.findByProductAndDateAfter(product, twoMonthsAgo);
+
+        // Om färre än 5 recensioner → hämta senaste 10 recensionerna oavsett datum
+        if (recentReviews.size() < 5) {
+            recentReviews = reviewRepository.findTop10ByProductOrderByDateDesc(product);
+        }
+
+        // Räkna ut medelbetyg (currentAverage)
+        double average = recentReviews.stream()
+                .mapToInt(Review::getRating)
+                .average()
+                .orElse(0.0);
+
+        // Hämta datum för senaste recension (lastReviewDate)
+        String lastReviewDate = recentReviews.isEmpty() ? null : recentReviews.get(0).getDate().toString();
+
+        // Bygg svaret (DTO)
+        ReviewStatsResponse response = new ReviewStatsResponse();
+        response.setProductId(product.getProductId());
+        response.setProductName(product.getProductName());
+        response.setCurrentAverage(average);
+        response.setTotalReviews(recentReviews.size());
+        response.setLastReviewDate(lastReviewDate);
+
+        return response;
     }
 }
 
