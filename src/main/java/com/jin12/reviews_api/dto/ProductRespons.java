@@ -16,5 +16,4 @@ public class ProductRespons {
     private String productName;
     private String category;
     private String tags;
-    private List<Review> reviews;
 }
