@@ -4,6 +4,7 @@ import com.jin12.reviews_api.dto.*;
 import com.jin12.reviews_api.model.Product;
 import com.jin12.reviews_api.model.Review;
 import com.jin12.reviews_api.model.User;
+import com.jin12.reviews_api.dto.ProductInfo;
 import com.jin12.reviews_api.service.ProductService;
 import com.jin12.reviews_api.service.ReviewService;
 import lombok.RequiredArgsConstructor;
