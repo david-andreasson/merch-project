@@ -20,4 +20,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     List<Review> findByProductAndDateAfter(Product product, LocalDate fromDate);
 
+    // Om vi behöver fler recensioner -> hämta senaste 10 oavsett datum
+    List<Review> findTop10ByProductOrderByDateDesc(Product product);
 }
