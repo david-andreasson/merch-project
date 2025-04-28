@@ -48,7 +48,7 @@ public class ProductController {
 
             ReviewsRespons reviewsRespons = ReviewsRespons.builder()
                     .productId(productRequest.getProductId())
-                    .averageRating(totalRating / reviews.size())
+                    .stats(reviewService.getProductStats(productId))
                     .reviews(reviewResponses)
                     .build();
 

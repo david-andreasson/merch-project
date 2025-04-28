@@ -5,14 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ReviewsRespons {
+public class ReviewStatsResponse {
     private String productId;
-    private ReviewStatsResponse stats;
-    private List<ReviewRespons> reviews;
+    private String productName;
+    private double currentAverage;
+    private int totalReviews;
+    private String lastReviewDate;
 }
