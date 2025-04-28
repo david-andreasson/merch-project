@@ -134,16 +134,23 @@ public class ProductController {
                     .tags(String.join(", ", productRequest.getTags()))
                     .user(user)
                     .build();
-            productService.addProduct(product);
+            productService.addProduct(product);}
 
+        // Hämta och AI-påfyll minst 5 recensioner
+        List<Review> reviews;
+        try {
+            reviews = reviewService.getRecentReviews(product.getProductId());
+        } catch (Exception ex) {
+            throw new RuntimeException("Kunde inte hämta/generera recensioner", ex);
         }
-        //TODO: Skicka till review
 
+        // Bygg productrespons med både produktinfo och reviews
         ProductRespons productRespons = ProductRespons.builder()
                 .productId(productRequest.getProductId())
                 .productName(product.getProductName())
                 .category(product.getCategory())
                 .tags(product.getTags())
+                .reviews(reviews)
                 .build();
         return ResponseEntity.status(HttpStatus.CREATED).body(productRespons);
     }
