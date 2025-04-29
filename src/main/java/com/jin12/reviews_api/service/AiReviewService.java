@@ -1,11 +1,18 @@
 package com.jin12.reviews_api.service;
 
-import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jin12.reviews_api.model.Product;
 import com.jin12.reviews_api.model.Review;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import io.github.cdimascio.dotenv.Dotenv;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class AiReviewService {
@@ -27,9 +34,19 @@ public class AiReviewService {
             """;
 
     // Sätt true för mock-läge, false för produktion
-    private static final boolean USE_MOCK = true;
+    private static final boolean USE_MOCK = false;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
+    private final Dotenv dotenv;
+
+
+    public AiReviewService(RestTemplate restTemplate, ObjectMapper objectMapper) {
+        this.restTemplate = restTemplate;
+        this.objectMapper = objectMapper;
+        this.dotenv = Dotenv.load();
+    }
 
 
     // Genererar en Review för produkten, antingen mockad eller via riktigt ai-anrop (när USE_MOCK=false och requestAiReview är implementerad).
@@ -69,9 +86,36 @@ public class AiReviewService {
         return review;
     }
 
-    // TODO: Byt ut mot riktigt HTTP-anrop mot OpenAI eller vilken tjänst vi nu kommer få använda
-    private String requestAiReview(String prompt) {
-        throw new UnsupportedOperationException("Ser du den här raden så kör du USE_MOCK=false utan att ha implementerat det riktiga AI-anropet");
+    private String requestAiReview(String prompt) throws Exception {
+
+        String apiKey = dotenv.get("OPENAI_API_KEY");
+        String apiUrl = dotenv.get("OPENAI_API_URL");
+
+        // Bygg headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(apiKey);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // Payload enligt OpenAI Chat-kompatibelt format
+        Map<String, Object> body = Map.of(
+                "model", "gpt-4",
+                "messages", List.of(
+                        Map.of("role", "system", "content", "Du är en hjälpsam AI som skriver produktrecensioner."),
+                        Map.of("role", "user", "content", prompt)
+                )
+        );
+
+        //Skicka POST och hämta rå JSON
+        HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, headers);
+        String raw = restTemplate.postForObject(apiUrl, req, String.class);
+
+        //Extrahera bara innehållet från svaret
+        JsonNode root = objectMapper.readTree(raw);
+        return root
+                .path("choices").get(0)
+                .path("message")
+                .path("content")
+                .asText();
     }
 
     // Intern DTO-klass för JSON-parsning
