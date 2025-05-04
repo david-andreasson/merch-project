@@ -1,0 +1,116 @@
+### Ändra denna om vi skickar upp till hosting ###
+@host = http://localhost:8080
+@userPassUser = test_user123
+@userPassPassword = secret123
+@apiUser = test_user_api
+@apiPassword = secret123
+
+
+#### === USER/PASS-FLÖDE ===
+
+### 1) Registrera med användarnamn & lösenord
+POST {{host}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "{{userPassUser}}",
+  "password": "{{userPassPassword}}",
+  "authType": "PASSWORD"
+}
+
+### 2) Logga in med användarnamn & lösenord
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{userPassUser}}",
+  "password": "{{userPassPassword}}",
+  "authType": "PASSWORD"
+}
+
+> {% client.global.set("token", response.body.token) %}
+
+### 3) Testa skyddad endpoint (user/pass)
+GET {{host}}/test-auth
+Authorization: Bearer {{token}}
+
+#### === API-KEY-FLÖDE ===
+
+### 4) Registrera med API-key
+POST {{host}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "{{apiUser}}",
+  "password": "{{apiPassword}}",
+  "authType": "API_KEY"
+}
+
+> {% client.global.set("apiKey", response.body.apiKey) %}
+
+### 5) Logga in med API-key
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{apiUser}}",
+  "apiKey": "{{apiKey}}",
+  "authType": "API_KEY"
+}
+
+> {% client.global.set("token", response.body.token) %}
+
+### 6) Testa skyddad endpoint (apiKey)
+GET {{host}}/test-auth
+Authorization: Bearer {{token}}
+
+#### === EXEMPEL-PÅ-ÖVRIGA-ENDPOINTS ===
+
+### 7) Skapa produkt (productOnly)
+POST {{host}}/product
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "mode": "productOnly",
+  "productId": "T12345"
+}
+
+### 8) Hämta recensioner för en produkt
+GET {{host}}/product
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "mode": "productOnly",
+  "productId": "T12345"
+}
+
+
+### 9) Skapa produkt + detaljer
+POST {{host}}/product
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "mode": "withDetails",
+  "productId": "T12346",
+  "productName": "Min Produkt",
+  "category": "Kategori",
+  "tags": ["tag1", "tag2"]
+}
+
+### 10) Lägg till egen recension
+POST {{host}}/product
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "mode": "customReview",
+  "productId": "T12345",
+  "review": {
+    "name": "Anna",
+    "text": "Riktigt bra produkt!",
+    "rating": 5
+  }
+}
