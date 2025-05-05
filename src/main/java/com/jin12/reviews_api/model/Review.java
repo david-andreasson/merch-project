@@ -20,6 +20,7 @@ public class Review {
     @Column(nullable = false)
     private String name;
 
+    @Lob //Detta ändrar i databasen till CLOB/TEXT-typ istället för VARCHAR(255) 255 kan ju vara för litet för en review
     @Column
     private String reviewText;
 
