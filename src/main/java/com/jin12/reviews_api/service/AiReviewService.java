@@ -1,5 +1,6 @@
 package com.jin12.reviews_api.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jin12.reviews_api.model.Product;
@@ -24,13 +25,16 @@ public class AiReviewService {
             - Kategori: %s
             - Taggar: %s
             
-            Skriv en recension som ett JSON-objekt:
+            Skriv och svara endast med en recension som ett komplett JSON-objekt:
             {
               "name": "…",
               "date": "YYYY-MM-DD",
               "rating": 1–5,
               "text": "…"
             }
+            
+            "name" är ett påhittat namn på en person.
+            "date" får bara vara dem senaste två månaderna.
             """;
 
     // Sätt true för mock-läge, false för produktion
@@ -50,7 +54,7 @@ public class AiReviewService {
 
 
     // Genererar en Review för produkten, antingen mockad eller via riktigt ai-anrop (när USE_MOCK=false och requestAiReview är implementerad).
-    public Review generateReview(Product product) throws Exception {
+    public Review generateReview(Product product) throws JsonProcessingException {
 
         //Bygg prompt-strängen
         String prompt = String.format(
@@ -76,6 +80,7 @@ public class AiReviewService {
         }
 
         // Gör om JSON till ReviewDto
+        System.out.println(jsonResponse);
         ReviewDto dto = objectMapper.readValue(jsonResponse, ReviewDto.class);
 
         // Konvertera ReviewDto till Review-entitet
@@ -86,7 +91,7 @@ public class AiReviewService {
         return review;
     }
 
-    private String requestAiReview(String prompt) throws Exception {
+    private String requestAiReview(String prompt) throws JsonProcessingException {
 
         String apiKey = dotenv.get("OPENAI_API_KEY");
         String apiUrl = dotenv.get("OPENAI_API_URL");

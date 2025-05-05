@@ -54,7 +54,7 @@ public class ProductController {
                     .build();
 
             return ResponseEntity.ok(reviewsRespons);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Product does not exist");
         }
     }

@@ -1,5 +1,6 @@
 package com.jin12.reviews_api.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jin12.reviews_api.dto.ReviewStatsResponse;
 import com.jin12.reviews_api.model.Product;
 import com.jin12.reviews_api.model.Review;
@@ -42,10 +43,10 @@ public class ReviewService {
         reviewRepository.deleteById(reviewId);  // Ta bort recensionen från databasen
     }
 
-    public List<Review> getRecentReviews(String productId) throws Exception {
+    public List<Review> getRecentReviews(String productId) throws IllegalArgumentException {
         // Hämta produkt baserat på productId
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Produkt finns inte"));
+                .orElseThrow(() -> new IllegalArgumentException("Produkt finns inte"));
 
         // Datumgräns för de senaste 2 månaderna
         LocalDate fromDate = LocalDate.now().minusMonths(2);
@@ -56,11 +57,16 @@ public class ReviewService {
 
         // Om vi har mindre än MIN_REVIEWS, ai-generera de som saknas
         int missing = MIN_REVIEWS - allRecentReviews.size();
-        for (int i = 0; i < missing; i++) {
-            Review aiReview = aiReviewService.generateReview(product);
-            reviewRepository.save(aiReview);
-            allRecentReviews.add(aiReview);
+        try {
+            for (int i = 0; i < missing; i++) {
+                Review aiReview = aiReviewService.generateReview(product);
+                reviewRepository.save(aiReview);
+                allRecentReviews.add(aiReview);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
 
         // Returnerar både gamla och nygenererade recensioner
         return allRecentReviews;
