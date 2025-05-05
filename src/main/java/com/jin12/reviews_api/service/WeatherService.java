@@ -38,7 +38,9 @@ public class WeatherService {
 
         RestTemplate restTemplate = new RestTemplate();
         WeatherRespons weatherRespons = restTemplate.getForObject(url, WeatherRespons.class);
-        assert weatherRespons != null;
+        if (weatherRespons == null) {
+            return latestWeather;
+        }
         latestWeather = weatherRespons.getWeather()[0];
         latestWeatherTimestamp = currentTimeSeconds();
 

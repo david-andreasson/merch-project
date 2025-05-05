@@ -82,7 +82,6 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "mode": "productOnly",
   "productId": "T12345"
 }
 
