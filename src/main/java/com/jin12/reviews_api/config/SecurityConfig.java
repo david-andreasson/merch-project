@@ -43,7 +43,7 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/swagger-ui/index.html"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/register.html","/mockshop.html", "/register-success.html"," /css/**", "/js/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/health","/register.html","/mockshop.html", "/register-success.html"," /css/**", "/js/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/test").permitAll()
                         .anyRequest().authenticated()

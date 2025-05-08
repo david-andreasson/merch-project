@@ -2,14 +2,13 @@ package com.jin12.reviews_api.service;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import io.github.cdimascio.dotenv.Dotenv;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.util.Base64;
 import java.util.Date;
-import java.util.Objects;
 
 @Service
 public class JwtService {
@@ -17,16 +16,10 @@ public class JwtService {
     private final String secret;
     private final long expiration;
 
-    public JwtService() {
-        Dotenv dotenv = Dotenv.configure()
-                .directory("./")
-                .filename(".env")
-                .load();
-
-        this.secret = Objects.requireNonNull(dotenv.get("JWT_SECRET"), "JWT_SECRET missing in .env-file");
-        this.expiration = Long.parseLong(
-                Objects.requireNonNull(dotenv.get("JWT_EXPIRATION"), "JWT_EXPIRATION missing in .env-file")
-        );
+    public JwtService(@Value("${JWT_SECRET}") String secret,
+                      @Value("${JWT_EXPIRATION}") long expiration) {
+        this.secret = secret;
+        this.expiration = expiration;
     }
 
     public String generateToken(UserDetails userDetails) {

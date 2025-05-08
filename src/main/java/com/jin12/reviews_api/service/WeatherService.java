@@ -2,23 +2,22 @@ package com.jin12.reviews_api.service;
 
 import com.jin12.reviews_api.dto.weatherService.Weather;
 import com.jin12.reviews_api.dto.weatherService.WeatherRespons;
-import io.github.cdimascio.dotenv.Dotenv;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Map;
 import java.util.Random;
 
 //https://northwaddleapp.niceisland-4f7272b3.northeurope.azurecontainerapps.io/swagger/index.html
 
 @Service
 public class WeatherService {
-    private static final Dotenv dotenv = Dotenv.configure()
-            .directory("./")
-            .filename(".env")
-            .load();
-    private static final String WEATHER_API_URL = dotenv.get("WEATHER_API_URL");
-    private static final String WEATHER_API_KEY = dotenv.get("WEATHER_API_KEY");
+
+    @Value("${WEATHER_API_URL}")
+    private String WEATHER_API_URL;
+
+    @Value("${WEATHER_API_KEY}")
+    private String WEATHER_API_KEY;
     private static final int SECONDS_BETWEEN_REQUESTS = 20;
 
     private static final Random random = new Random();
@@ -28,7 +27,7 @@ public class WeatherService {
 
 
     public Weather getWeather() {
-        if (latestWeatherTimestamp + SECONDS_BETWEEN_REQUESTS > currentTimeSeconds() ) {
+        if (latestWeatherTimestamp + SECONDS_BETWEEN_REQUESTS > currentTimeSeconds()) {
             return latestWeather;
         }
 

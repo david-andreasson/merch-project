@@ -21,7 +21,16 @@ class AiReviewServiceTest {
         RestTemplate restTemplate = new RestTemplate();
         ObjectMapper objectMapper = new ObjectMapper();
 
-        aiReviewService = new AiReviewService(restTemplate, objectMapper);
+        // Sätt mockade värden direkt i testet
+        String openAiApiKey = "mock-api-key";  // Mockat värde
+        String openAiApiUrl = "https://mockapi.openai.com";  // Mockat värde
+
+        aiReviewService = new AiReviewService(
+                restTemplate,
+                objectMapper,
+                openAiApiKey,
+                openAiApiUrl
+        );
 
         // Aktivera mockläge genom att sätta USE_MOCK till true via reflektion
         Field useMockField = AiReviewService.class.getDeclaredField("USE_MOCK");
