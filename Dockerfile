@@ -1,15 +1,14 @@
-# === Byggfas (med Maven) ===
-FROM eclipse-temurin:21-jdk-jammy AS build
+# === Bygg med global Maven-installation ===
+FROM maven:3.9-eclipse-temurin-21 AS build
 
 WORKDIR /app
 
-COPY . .
+COPY pom.xml .
+COPY src ./src
 
-RUN chmod +x ./mvnw
+RUN mvn clean package -DskipTests
 
-RUN ./mvnw clean package -DskipTests
-
-# === Runtime-fas (liten image) ===
+# === Runtime (slimmad) ===
 FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
