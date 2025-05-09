@@ -159,13 +159,13 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-            <!-- JUnit 5 test execution support -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version> <!-- Viktigt: JUnit 5-stöd kräver 2.22.0+ -->
+                <version>3.2.5</version>
                 <configuration>
                     <useModulePath>false</useModulePath>
+                    <argLine>-Dspring.profiles.active=test</argLine>
                 </configuration>
             </plugin>
         </plugins>
