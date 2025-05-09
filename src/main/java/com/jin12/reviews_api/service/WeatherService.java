@@ -8,8 +8,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Random;
 
-//https://northwaddleapp.niceisland-4f7272b3.northeurope.azurecontainerapps.io/swagger/index.html
-
 @Service
 public class WeatherService {
 
@@ -46,6 +44,8 @@ public class WeatherService {
 
         latestWeatherTimestamp = currentTimeSeconds();
 
+        System.out.println(latestWeather);
+
         return latestWeather;
     }
 
@@ -61,14 +61,41 @@ public class WeatherService {
         return System.currentTimeMillis() / 1000;
     }
 
-//    public static void main(String[] args) throws InterruptedException {
-//        WeatherService weatherService = new WeatherService();
-//        System.out.println(weatherService.getWeather());
-//        System.out.println(weatherService.getWeather());
-//        System.out.println(weatherService.getWeather());
-//        Thread.sleep(SECONDS_BETWEEN_REQUESTS * 1000);
-//        System.out.println(weatherService.getWeather());
-//        System.out.println(weatherService.getWeather());
-//        System.out.println(weatherService.getWeather());
-//    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public static void main(String[] args) throws InterruptedException {
+
+
+
+
+
+
+
+        WeatherService weatherService = new WeatherService();
+        weatherService.WEATHER_API_KEY = "516e7c86427ba443c97a2f27764f52bd";
+        weatherService.WEATHER_API_URL = "http://api.openweathermap.org/data/2.5/weather";
+
+        System.out.println(weatherService.getWeather());
+        System.out.println(weatherService.getWeather());
+        System.out.println(weatherService.getWeather());
+        Thread.sleep(SECONDS_BETWEEN_REQUESTS * 1000);
+        System.out.println(weatherService.getWeather());
+        System.out.println(weatherService.getWeather());
+        System.out.println(weatherService.getWeather());
+    }
 }
