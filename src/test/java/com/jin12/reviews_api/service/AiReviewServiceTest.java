@@ -20,8 +20,9 @@ class AiReviewServiceTest {
     void setUp() throws Exception {
         RestTemplate restTemplate = new RestTemplate();
         ObjectMapper objectMapper = new ObjectMapper();
+        WeatherService weatherService = new WeatherService();
 
-        aiReviewService = new AiReviewService(restTemplate, objectMapper);
+        aiReviewService = new AiReviewService(weatherService, restTemplate, objectMapper);
 
         // Aktivera mockläge genom att sätta USE_MOCK till true via reflektion
         Field useMockField = AiReviewService.class.getDeclaredField("USE_MOCK");
