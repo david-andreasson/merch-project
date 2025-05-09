@@ -18,13 +18,13 @@ import java.util.Map;
 @Service
 public class AiReviewService {
 
-    // Hårdkodad prompt-mall som genererar en recension
+//     Hårdkodad prompt-mall som genererar en recension
     private static final String PROMPT_TEMPLATE = """
             Du är en kund som recenserar produkten:
             - Namn: %s
             - Kategori: %s
             - Taggar: %s
-            
+
             Skriv och svara endast med en recension som ett komplett JSON-objekt:
             {
               "name": "…",
@@ -32,32 +32,39 @@ public class AiReviewService {
               "rating": 1–5,
               "text": "…"
             }
-            
+
             "name" är ett påhittat namn på en person.
             "date" får bara vara dem senaste två månaderna.
+
+            Använd detta väder för att påverka recensionens humör, finare väder ger sämre recension:
+            %s
             """;
 
     // Sätt true för mock-läge, false för produktion
-    private static boolean USE_MOCK = true;
+    private static boolean USE_MOCK = false;
     // Final togs bort för att kunna köra tester
 
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+    private final WeatherService weatherService;
     private final String openAiApiKey;
     private final String openAiApiUrl;
 
     public AiReviewService(
+            WeatherService weatherService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper,
             @Value("${OPENAI_API_KEY}") String openAiApiKey,
             @Value("${OPENAI_API_URL}") String openAiApiUrl
     ) {
+        this.weatherService = weatherService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
         this.openAiApiKey = openAiApiKey;
         this.openAiApiUrl = openAiApiUrl;
     }
+
 
     // Genererar en Review för produkten, antingen mockad eller via riktigt ai-anrop (när USE_MOCK=false och requestAiReview är implementerad).
     public Review generateReview(Product product) throws JsonProcessingException {
@@ -67,7 +74,8 @@ public class AiReviewService {
                 PROMPT_TEMPLATE,
                 product.getProductName(),
                 product.getCategory(),
-                product.getTags()
+                product.getTags(),
+                weatherService.getWeather()
         );
 
         // Hämta JSON-respons

@@ -20,12 +20,14 @@ class AiReviewServiceTest {
     void setUp() throws Exception {
         RestTemplate restTemplate = new RestTemplate();
         ObjectMapper objectMapper = new ObjectMapper();
+        WeatherService weatherService = new WeatherService();
 
         // Sätt mockade värden direkt i testet
         String openAiApiKey = "mock-api-key";  // Mockat värde
         String openAiApiUrl = "https://mockapi.openai.com";  // Mockat värde
 
         aiReviewService = new AiReviewService(
+                weatherService,
                 restTemplate,
                 objectMapper,
                 openAiApiKey,
