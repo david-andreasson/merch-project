@@ -61,35 +61,8 @@ public class WeatherService {
         return System.currentTimeMillis() / 1000;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public static void main(String[] args) throws InterruptedException {
-
-
-
-
-
-
-
         WeatherService weatherService = new WeatherService();
-        weatherService.WEATHER_API_KEY = "516e7c86427ba443c97a2f27764f52bd";
-        weatherService.WEATHER_API_URL = "http://api.openweathermap.org/data/2.5/weather";
-
         System.out.println(weatherService.getWeather());
         System.out.println(weatherService.getWeather());
         System.out.println(weatherService.getWeather());
