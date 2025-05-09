@@ -1,12 +1,10 @@
 package com.jin12.reviews_api.service;
 
-import com.jin12.reviews_api.dto.weatherService.Weather;
-import com.jin12.reviews_api.dto.weatherService.WeatherRespons;
+import com.jin12.reviews_api.dto.weatherService.WeatherResponse;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Map;
 import java.util.Random;
 
 //https://northwaddleapp.niceisland-4f7272b3.northeurope.azurecontainerapps.io/swagger/index.html
@@ -23,11 +21,12 @@ public class WeatherService {
 
     private static final Random random = new Random();
 
-    private static Weather latestWeather;
+    private static String latestWeather;
     private static long latestWeatherTimestamp = 0;
 
 
-    public Weather getWeather() {
+    public String getWeather() {
+        //Limit amount of calls to API
         if (latestWeatherTimestamp + SECONDS_BETWEEN_REQUESTS > currentTimeSeconds() ) {
             return latestWeather;
         }
@@ -37,13 +36,16 @@ public class WeatherService {
 
 
         RestTemplate restTemplate = new RestTemplate();
-        WeatherRespons weatherRespons = restTemplate.getForObject(url, WeatherRespons.class);
-        if (weatherRespons == null) {
+        WeatherResponse weatherResponse = restTemplate.getForObject(url, WeatherResponse.class);
+        if (weatherResponse == null) {
             return latestWeather;
         }
-        latestWeather = weatherRespons.getWeather()[0];
+//        latestWeather = weatherRespons.getWeather()[0];
+        latestWeather = weatherResponse.toString();
+
         latestWeatherTimestamp = currentTimeSeconds();
 
+        System.out.println(latestWeather);
         return latestWeather;
     }
 

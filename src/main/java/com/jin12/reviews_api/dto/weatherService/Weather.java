@@ -6,5 +6,4 @@ import lombok.Data;
 public class Weather {
     String main;
     String description;
-
 }
