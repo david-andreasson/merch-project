@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jin12.reviews_api.model.Product;
 import com.jin12.reviews_api.model.Review;
-import io.github.cdimascio.dotenv.Dotenv;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -48,14 +48,21 @@ public class AiReviewService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final WeatherService weatherService;
-    private final Dotenv dotenv;
+    private final String openAiApiKey;
+    private final String openAiApiUrl;
 
-
-    public AiReviewService(WeatherService weatherService, RestTemplate restTemplate, ObjectMapper objectMapper) {
+    public AiReviewService(
+            WeatherService weatherService,
+            RestTemplate restTemplate,
+            ObjectMapper objectMapper,
+            @Value("${OPENAI_API_KEY}") String openAiApiKey,
+            @Value("${OPENAI_API_URL}") String openAiApiUrl
+    ) {
         this.weatherService = weatherService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
-        this.dotenv = Dotenv.load();
+        this.openAiApiKey = openAiApiKey;
+        this.openAiApiUrl = openAiApiUrl;
     }
 
 
@@ -99,16 +106,10 @@ public class AiReviewService {
     }
 
     private String requestAiReview(String prompt) throws JsonProcessingException {
-
-        String apiKey = dotenv.get("OPENAI_API_KEY");
-        String apiUrl = dotenv.get("OPENAI_API_URL");
-
-        // Bygg headers
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(apiKey);
+        headers.setBearerAuth(openAiApiKey);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // Payload enligt OpenAI Chat-kompatibelt format
         Map<String, Object> body = Map.of(
                 "model", "gpt-4",
                 "messages", List.of(
@@ -119,7 +120,7 @@ public class AiReviewService {
 
         //Skicka POST och hämta rå JSON
         HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, headers);
-        String raw = restTemplate.postForObject(apiUrl, req, String.class);
+        String raw = restTemplate.postForObject(openAiApiUrl, req, String.class);
 
         //Extrahera bara innehållet från svaret
         JsonNode root = objectMapper.readTree(raw);
