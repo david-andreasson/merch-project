@@ -44,7 +44,6 @@ public class AiReviewService {
     private static boolean USE_MOCK = false;
     // Final togs bort för att kunna köra tester
 
-
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final WeatherService weatherService;
