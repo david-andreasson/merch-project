@@ -107,7 +107,7 @@ Content-Type: application/json
 {
   "mode": "withUrl",
   "productId": "T12347",
-  "productInfoUrl":
+  "productInfoUrl": "http://localhost:8080/test?productId=T12347"
 }
 
 ### 11) Lägg till egen recension
