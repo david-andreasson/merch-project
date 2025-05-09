@@ -61,14 +61,14 @@ public class WeatherService {
         return System.currentTimeMillis() / 1000;
     }
 
-//    public static void main(String[] args) throws InterruptedException {
-//        WeatherService weatherService = new WeatherService();
-//        System.out.println(weatherService.getWeather());
-//        System.out.println(weatherService.getWeather());
-//        System.out.println(weatherService.getWeather());
-//        Thread.sleep(SECONDS_BETWEEN_REQUESTS * 1000);
-//        System.out.println(weatherService.getWeather());
-//        System.out.println(weatherService.getWeather());
-//        System.out.println(weatherService.getWeather());
-//    }
+    public static void main(String[] args) throws InterruptedException {
+        WeatherService weatherService = new WeatherService();
+        System.out.println(weatherService.getWeather());
+        System.out.println(weatherService.getWeather());
+        System.out.println(weatherService.getWeather());
+        Thread.sleep(SECONDS_BETWEEN_REQUESTS * 1000);
+        System.out.println(weatherService.getWeather());
+        System.out.println(weatherService.getWeather());
+        System.out.println(weatherService.getWeather());
+    }
 }
