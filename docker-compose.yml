@@ -1,6 +1,9 @@
 services:
   backend:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: merch-project-backend
     container_name: merch-project
     ports:
       - '${BACKEND_PORT}:8080'
