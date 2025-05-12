@@ -153,4 +153,24 @@ public class ProductController {
         productRequest.setTags(List.of("hårdrock", "80-tal", "svart", "bomull"));
         return handleWithDetails(productRequest, user);
     }
+
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<Object> deleteProduct(@PathVariable String productId,
+                                                @AuthenticationPrincipal UserDetails userDetails) {
+        User user = (User) userDetails;
+        String fullProductId = user.getId() + productId;
+
+        try {
+            // Ta bort relaterade recensioner först
+            reviewService.deleteReviewsByProductId(fullProductId);
+
+            // Ta sedan bort produkten
+            productService.deleteProduct(fullProductId);
+
+            return ResponseEntity.ok("Product and related reviews deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Product with ID " + productId + " not found or could not be deleted");
+        }
+    }
 }

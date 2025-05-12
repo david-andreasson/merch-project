@@ -43,6 +43,10 @@ public class ReviewService {
         reviewRepository.deleteById(reviewId);  // Ta bort recensionen från databasen
     }
 
+    public void deleteReviewsByProductId(String productId) {
+        reviewRepository.deleteByProductId(productId);
+    }
+
     public List<Review> getRecentReviews(String productId) throws IllegalArgumentException {
         // Hämta produkt baserat på productId
         Product product = productRepository.findById(productId)
