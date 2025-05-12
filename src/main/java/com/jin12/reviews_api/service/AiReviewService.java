@@ -91,6 +91,7 @@ public class AiReviewService {
             jsonResponse = requestAiReview(prompt);
         }
 
+        //If ai responds with more than a json-object, remove everything before and after brackets
         if (!(jsonResponse.startsWith("{") && jsonResponse.endsWith("}"))) {
             int i = jsonResponse.indexOf("{");
             int j = jsonResponse.indexOf("}");
@@ -109,14 +110,13 @@ public class AiReviewService {
         return review;
     }
 
+    //Return random date within the last two months
     private LocalDate getRandomDate() {
         Random rand = new Random();
-
         LocalDate today = LocalDate.now();
         LocalDate twoMonthsAgo = LocalDate.now().minusMonths(2);
 
         long randomDate = rand.nextLong(twoMonthsAgo.toEpochDay(), today.toEpochDay());
-
         return LocalDate.ofEpochDay(randomDate);
     }
 
@@ -149,7 +149,6 @@ public class AiReviewService {
     // Intern DTO-klass för JSON-parsning
     private static record ReviewDto(
             String name,
-//            String date,
             int rating,
             String text
     ) {
