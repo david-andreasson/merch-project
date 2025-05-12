@@ -81,4 +81,42 @@ class ReviewRepositoryTest {
         assertThat(result).hasSize(10);
         assertThat(result.get(0).getDate()).isAfter(result.get(9).getDate()); // Kontrollera sortering
     }
+
+    @Test
+    @DisplayName("Should delete reviews by productId")
+    void testDeleteByProductId() {
+        // Skapa och spara användare
+        User user = new User();
+        user.setUsername("deleter");
+        user.setPassword("pass");
+        user = userRepository.save(user);
+
+        // Skapa och spara produkt
+        Product product = new Product();
+        product.setProductId("del-prod");
+        product.setProductName("Delete Me");
+        product.setUser(user);
+        product = productRepository.save(product);
+
+        // Lägg till 3 recensioner
+        Review r1 = new Review("A", "R1", 5, false);
+        Review r2 = new Review("B", "R2", 4, false);
+        Review r3 = new Review("C", "R3", 3, false);
+        for (Review r : List.of(r1, r2, r3)) {
+            r.setProduct(product);
+            r.setDate(LocalDate.now());
+        }
+        reviewRepository.saveAll(List.of(r1, r2, r3));
+
+        // Verifiera att recensionerna finns
+        assertThat(reviewRepository.findByProductAndDateAfter(product, LocalDate.now().minusDays(1)))
+                .hasSize(3);
+
+        // Kör deleteByProductId
+        reviewRepository.deleteByProductId("del-prod");
+
+        // Verifiera att recensionerna är borta
+        assertThat(reviewRepository.findByProductAndDateAfter(product, LocalDate.now().minusDays(1)))
+                .isEmpty();
+    }
 }

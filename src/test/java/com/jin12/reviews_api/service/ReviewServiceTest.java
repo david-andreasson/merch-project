@@ -154,6 +154,13 @@ class ReviewServiceTest {
                 reviewService.getProductStats("missing"));
     }
 
+    @Test
+    void testDeleteReviewsByProductId() {
+        String productId = "some-product-id";
+        reviewService.deleteReviewsByProductId(productId);
+        verify(reviewRepository).deleteByProductId(productId);
+    }
+
     // Utility method
     private List<Review> createReviews(int count) {
         List<Review> reviews = new ArrayList<>();

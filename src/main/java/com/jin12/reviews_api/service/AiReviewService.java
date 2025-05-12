@@ -41,7 +41,7 @@ public class AiReviewService {
             """;
 
     // Sätt true för mock-läge, false för produktion
-    private static boolean USE_MOCK = false;
+    private static boolean USE_MOCK = true;
     // Final togs bort för att kunna köra tester
 
     private final RestTemplate restTemplate;
