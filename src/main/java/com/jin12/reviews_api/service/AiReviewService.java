@@ -45,7 +45,6 @@ public class AiReviewService {
     private static boolean USE_MOCK = false;
     // Final togs bort för att kunna köra tester
 
-
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final WeatherService weatherService;
@@ -65,7 +64,6 @@ public class AiReviewService {
         this.openAiApiKey = openAiApiKey;
         this.openAiApiUrl = openAiApiUrl;
     }
-
 
     // Genererar en Review för produkten, antingen mockad eller via riktigt ai-anrop (när USE_MOCK=false och requestAiReview är implementerad).
     public Review generateReview(Product product) throws JsonProcessingException {
