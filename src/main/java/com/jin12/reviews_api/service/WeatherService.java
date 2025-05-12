@@ -8,8 +8,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Random;
 
-//https://northwaddleapp.niceisland-4f7272b3.northeurope.azurecontainerapps.io/swagger/index.html
-
 @Service
 public class WeatherService {
 
@@ -61,14 +59,14 @@ public class WeatherService {
         return System.currentTimeMillis() / 1000;
     }
 
-    public static void main(String[] args) throws InterruptedException {
-        WeatherService weatherService = new WeatherService();
-        System.out.println(weatherService.getWeather());
-        System.out.println(weatherService.getWeather());
-        System.out.println(weatherService.getWeather());
-        Thread.sleep(SECONDS_BETWEEN_REQUESTS * 1000);
-        System.out.println(weatherService.getWeather());
-        System.out.println(weatherService.getWeather());
-        System.out.println(weatherService.getWeather());
-    }
+//    public static void main(String[] args) throws InterruptedException {
+//        WeatherService weatherService = new WeatherService();
+//        System.out.println(weatherService.getWeather());
+//        System.out.println(weatherService.getWeather());
+//        System.out.println(weatherService.getWeather());
+//        Thread.sleep(SECONDS_BETWEEN_REQUESTS * 1000);
+//        System.out.println(weatherService.getWeather());
+//        System.out.println(weatherService.getWeather());
+//        System.out.println(weatherService.getWeather());
+//    }
 }
