@@ -10,8 +10,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Random;
 
-//https://northwaddleapp.niceisland-4f7272b3.northeurope.azurecontainerapps.io/swagger/index.html
-//@RequiredArgsConstructor
 @Service
 public class WeatherService {
 
@@ -46,7 +44,6 @@ public class WeatherService {
         String url = WEATHER_API_URL + "?lat=" + getLat() + "&lon=" + getLon() + "&appid=" + WEATHER_API_KEY;
 
 
-        //RestTemplate restTemplate = new RestTemplate();
         WeatherResponse weatherResponse = restTemplate.getForObject(url, WeatherResponse.class);
         if (weatherResponse == null) {
             return latestWeather;

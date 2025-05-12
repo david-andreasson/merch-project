@@ -42,5 +42,12 @@ public class TestController {
                 .tags(List.of("Focus", "Svart", "Kombi"))
                 .build();
         products.put("T12346", productInfo);
+
+        productInfo = ProductInfo.builder()
+                .productName("Volkswagen")
+                .category("Car")
+                .tags(List.of("Passat", "Silver", "Kombi"))
+                .build();
+        products.put("T12347", productInfo);
     }
 }
