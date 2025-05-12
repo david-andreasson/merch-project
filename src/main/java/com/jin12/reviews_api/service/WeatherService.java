@@ -2,6 +2,7 @@ package com.jin12.reviews_api.service;
 
 import com.jin12.reviews_api.dto.weatherService.Weather;
 import com.jin12.reviews_api.dto.weatherService.WeatherResponse;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -10,7 +11,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Random;
 
 //https://northwaddleapp.niceisland-4f7272b3.northeurope.azurecontainerapps.io/swagger/index.html
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 @Service
 public class WeatherService {
 
@@ -28,6 +29,12 @@ public class WeatherService {
     private static String latestWeather;
     private static long latestWeatherTimestamp = 0;
 
+    public WeatherService() {
+        restTemplate = new RestTemplate();
+    }
+     public WeatherService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+     }
 
     public String getWeather() {
         //Limit amount of calls to API
