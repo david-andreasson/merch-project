@@ -19,7 +19,6 @@ import java.util.Random;
 
 @Service
 public class AiReviewService {
-
     //     Hårdkodad prompt-mall som genererar en recension
     private static final String PROMPT_TEMPLATE = """
             Du är en kund som recenserar produkten:
