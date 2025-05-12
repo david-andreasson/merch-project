@@ -11,39 +11,38 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 @Service
 public class AiReviewService {
-
-//     Hårdkodad prompt-mall som genererar en recension
+    //     Hårdkodad prompt-mall som genererar en recension
     private static final String PROMPT_TEMPLATE = """
             Du är en kund som recenserar produkten:
             - Namn: %s
             - Kategori: %s
             - Taggar: %s
-
-            Skriv och svara endast med en recension som ett komplett JSON-objekt:
+            
+            Skriv och svara endast med en recension som ett komplett JSON-objekt utan ```:
             {
               "name": "…",
-              "date": "YYYY-MM-DD",
               "rating": 1–5,
               "text": "…"
             }
-
+            
             "name" är ett påhittat namn på en person.
-            "date" får bara vara dem senaste två månaderna.
-
+            
             Använd detta väder för att påverka recensionens humör, finare väder ger sämre recension:
             %s
+            /no_think
             """;
 
     // Sätt true för mock-läge, false för produktion
     private static boolean USE_MOCK = false;
     // Final togs bort för att kunna köra tester
-
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -65,7 +64,6 @@ public class AiReviewService {
         this.openAiApiUrl = openAiApiUrl;
     }
 
-
     // Genererar en Review för produkten, antingen mockad eller via riktigt ai-anrop (när USE_MOCK=false och requestAiReview är implementerad).
     public Review generateReview(Product product) throws JsonProcessingException {
 
@@ -84,7 +82,6 @@ public class AiReviewService {
             jsonResponse = """
                     {
                       "name": "TestUser",
-                      "date": "2025-04-01",
                       "rating": 5,
                       "text": "Detta är en mockad recension."
                     }
@@ -93,16 +90,33 @@ public class AiReviewService {
             jsonResponse = requestAiReview(prompt);
         }
 
+        //If ai responds with more than a json-object, remove everything before and after brackets
+        if (!(jsonResponse.startsWith("{") && jsonResponse.endsWith("}"))) {
+            int i = jsonResponse.indexOf("{");
+            int j = jsonResponse.indexOf("}");
+            jsonResponse = jsonResponse.substring(i, j+1);
+        }
+
         // Gör om JSON till ReviewDto
         System.out.println(jsonResponse);
         ReviewDto dto = objectMapper.readValue(jsonResponse, ReviewDto.class);
 
         // Konvertera ReviewDto till Review-entitet
         Review review = new Review(dto.name(), dto.text(), dto.rating(), true);
-        review.setDate(LocalDate.parse(dto.date()));
+        review.setDate(getRandomDate());
         review.setProduct(product);
 
         return review;
+    }
+
+    //Return random date within the last two months
+    private LocalDate getRandomDate() {
+        Random rand = new Random();
+        LocalDate today = LocalDate.now();
+        LocalDate twoMonthsAgo = LocalDate.now().minusMonths(2);
+
+        long randomDate = rand.nextLong(twoMonthsAgo.toEpochDay(), today.toEpochDay());
+        return LocalDate.ofEpochDay(randomDate);
     }
 
     private String requestAiReview(String prompt) throws JsonProcessingException {
@@ -134,7 +148,6 @@ public class AiReviewService {
     // Intern DTO-klass för JSON-parsning
     private static record ReviewDto(
             String name,
-            String date,
             int rating,
             String text
     ) {

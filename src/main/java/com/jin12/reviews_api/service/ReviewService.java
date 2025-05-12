@@ -21,7 +21,6 @@ public class ReviewService {
 
     private static final int MIN_REVIEWS = 5;
 
-
     public ReviewService(ReviewRepository reviewRepository, ProductRepository productRepository,  AiReviewService aiReviewService) {
         this.reviewRepository = reviewRepository;
         this.productRepository = productRepository;
