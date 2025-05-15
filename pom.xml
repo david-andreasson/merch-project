@@ -172,6 +172,13 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <excludes>
+                                <!-- Exkluderar alla klasser i package "com.example.util" -->
+                                <exclude>**/config/**</exclude>
+                                <exclude>**/security/**</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
