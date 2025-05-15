@@ -1,8 +1,10 @@
 package com.jin12.reviews_api.service;
 
+import com.jin12.reviews_api.Utils.CryptoUtils;
 import com.jin12.reviews_api.model.ApiKey;
 import com.jin12.reviews_api.model.User;
 import com.jin12.reviews_api.repository.ApiKeyRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
@@ -13,10 +15,19 @@ import java.util.Optional;
 
 @Service
 public class ApiKeyService {
+
+    @Value("${master.key}")
+    private String masterKey;
     private final ApiKeyRepository apiKeyRepository;
 
     public ApiKeyService(ApiKeyRepository apiKeyRepository) {
         this.apiKeyRepository = apiKeyRepository;
+    }
+
+    public String getDecryptedApiKey(User user) throws Exception {
+        String encryptedKey = user.getEncryptedApiKey();
+        if (encryptedKey == null) return null;
+        return CryptoUtils.decrypt(masterKey, encryptedKey);
     }
 
     public String createApiKey(User user) {

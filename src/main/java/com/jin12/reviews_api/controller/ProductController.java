@@ -5,11 +5,11 @@ import com.jin12.reviews_api.model.Product;
 import com.jin12.reviews_api.model.Review;
 import com.jin12.reviews_api.model.User;
 import com.jin12.reviews_api.dto.ProductInfo;
+import com.jin12.reviews_api.service.ApiKeyService;
 import com.jin12.reviews_api.service.ProductService;
 import com.jin12.reviews_api.service.ReviewService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +24,7 @@ import java.util.List;
 public class ProductController {
     private final ProductService productService;
     private final ReviewService reviewService;
+    private final ApiKeyService apiKeyService;
 
     @GetMapping
     public ResponseEntity<Object> getReviews(@RequestBody ProductRequest productRequest,
@@ -89,16 +90,43 @@ public class ProductController {
         if (productRequest.getProductId() == null) {
             return ResponseEntity.badRequest().body("Missing product URL");
         }
-        RestTemplate restTemplate = new RestTemplate();
-        ProductInfo info = restTemplate.getForObject(productRequest.getProductInfoUrl(), ProductInfo.class);
-        if (info == null) {
-            return ResponseEntity.badRequest().body("URL did not work correctly");
+        String apiKey;
+        try {
+            apiKey = apiKeyService.getDecryptedApiKey(user);
+            if (apiKey == null || apiKey.isEmpty()) {
+                return ResponseEntity.badRequest().body("User has no API key configured");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to decrypt API key");
         }
-        productRequest.setProductName(info.getProductName());
-        productRequest.setCategory(info.getCategory());
-        productRequest.setTags(info.getTags());
 
-        return handleWithDetails(productRequest, user);
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + apiKey);  // Anpassa header enligt API
+        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<ProductInfo> response = restTemplate.exchange(
+                    productRequest.getProductInfoUrl(),
+                    HttpMethod.GET,
+                    requestEntity,
+                    ProductInfo.class
+            );
+
+            ProductInfo info = restTemplate.getForObject(productRequest.getProductInfoUrl(), ProductInfo.class);
+            if (info == null) {
+                return ResponseEntity.badRequest().body("URL did not work correctly");
+            }
+            productRequest.setProductName(info.getProductName());
+            productRequest.setCategory(info.getCategory());
+            productRequest.setTags(info.getTags());
+
+            return handleWithDetails(productRequest, user);
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .body("Error calling external product info service: " + e.getMessage());
+        }
     }
 
     private ResponseEntity<Object> handleCustomReview(ProductRequest productRequest, User user) {
