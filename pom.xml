@@ -154,26 +154,14 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version>
-                <configuration>
-                    <useModulePath>false</useModulePath>
-                    <argLine>-Dspring.profiles.active=test</argLine>
-                </configuration>
-            </plugin>
+            <!-- JaCoCo först, så att argLine hinner sättas -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.13</version>
                 <executions>
                     <execution>
+                        <id>prepare-agent</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
@@ -187,6 +175,26 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Surefire efter JaCoCo -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <!-- Kombinera JaCoCo agent med testprofil -->
+                    <!--suppress UnresolvedMavenProperty -->
+                    <argLine>${argLine}</argLine>
+                    <useModulePath>false</useModulePath>
+                </configuration>
+            </plugin>
+
+            <!-- Spring Boot plugin sist -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
         </plugins>
     </build>
+
 </project>
