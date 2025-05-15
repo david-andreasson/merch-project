@@ -20,7 +20,7 @@ public class WeatherService {
 
     @Value("${WEATHER_API_KEY}")
     private String WEATHER_API_KEY;
-    private static final int SECONDS_BETWEEN_REQUESTS = 20;
+    private static final int SECONDS_BETWEEN_REQUESTS = 3;
 
     private static final Random random = new Random();
 
