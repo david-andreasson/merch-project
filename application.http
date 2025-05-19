@@ -1,6 +1,6 @@
 ### Ändra denna om vi skickar upp till hosting ###
-@host = http://localhost:8080
-#@host = http://161.97.151.105
+#@host = http://localhost:8080
+@host = http://161.97.151.105:8081
 @userPassUser = Alexander
 @userPassPassword = secret123
 @apiUser = test_user_api
@@ -78,7 +78,7 @@ Content-Type: application/json
 }
 
 ### 8) Hämta recensioner för en produkt
-GET {{host}}/product
+GET {{host}}/product/T12345
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
