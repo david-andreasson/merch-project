@@ -1,12 +1,19 @@
+
 # API Endpoints Dokumentation
+
+**Base URL:** `https://aireviews.drillbi.se`
+
+**Swagger UI:** https://aireviews.drillbi.se/swagger-ui/index.html`
+
+
 
 Denna API erbjuder funktionalitet för hantering av produkter, recensioner och autentisering. Här är en lista över tillgängliga endpoints.
 
 ---
 
-## Autentisering
+## 1. Autentisering
 
-### 1. Registera en ny användare
+### 1.1 Registera en ny användare
 **Endpoint:** `POST /auth/register`
 
 Skapar en ny användare och returnerar en JWT-token eller API-nyckel beroende på `authType`.
@@ -18,27 +25,32 @@ Skapar en ny användare och returnerar en JWT-token eller API-nyckel beroende p�
   "password": "examplePassword",
   "authType": "password" // eller "API_KEY"
 }
-```
+````
 
 **Response:**
+
 ```json
 {
   "token": "jwt_token_here"
 }
 ```
+
 eller, om `authType` är `"API_KEY"`:
+
 ```json
 {
   "apiKey": "generated_api_key_here"
 }
 ```
 
-### 2. Logga in
+### 1.2 Logga in
+
 **Endpoint:** `POST /auth/login`
 
-Loggar in en användare med antingen användarnamn/lösenord eller en API-nyckel.
+Loggar in en användare och returnerar en JWT-token.
 
-**Request Body (med användarnamn och lösenord):**
+**Request Body (lösenord):**
+
 ```json
 {
   "username": "exampleUser",
@@ -47,7 +59,8 @@ Loggar in en användare med antingen användarnamn/lösenord eller en API-nyckel
 }
 ```
 
-**Request Body (med API-nyckel):**
+**Request Body (API-nyckel):**
+
 ```json
 {
   "apiKey": "valid_api_key_here",
@@ -56,31 +69,78 @@ Loggar in en användare med antingen användarnamn/lösenord eller en API-nyckel
 ```
 
 **Response:**
+
 ```json
 {
   "token": "jwt_token_here"
 }
 ```
 
----
+### 1.3 Testa skyddad endpoint
 
-# 3. Produkter
+**Endpoint:** `GET /test-auth`
 
-## POST /product (Mode: productOnly)
+Kontrollerar giltig JWT-token eller API-nyckel.
 
-**Beskrivning:**  
-Lägger till en produkt med endast productId utan att hämta information från någon extern URL.
+**Header:**
+
+```http
+Authorization: Bearer <token>
+```
+
+**Response:**
+
+* `200 OK` – OK om token är giltig.
+
+
+### 1.4 Register API-KEY
+
+**Endpoint:** `POST /user/api-key`
+
+Kopplar API-nyckel till användaren för användning av /product with mode: "withUrl"
+
+**Header:**
+
+```http
+Authorization: Bearer <token>
+```
 
 **Request Body:**
+
+```json
+api-nyckel
+```
+
+**Response:**
+
+* `200 OK` – OK om API-nyckeln lyckades läggas till.
+
+---
+
+## 2. Produkter
+
+Alla produkt-endpoints kräver header:
+
+```http
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+### 2.1 Skapa produkt (Mode: productOnly)
+
+**Endpoint:** `POST /product`
+
+**Request Body:**
+
 ```json
 {
   "mode": "productOnly",
   "productId": "T12345"
 }
 ```
-Random information kommer att genereras för productName, category och tags.
 
 **Response:**
+
 ```json
 {
   "productId": "T12345",
@@ -90,15 +150,14 @@ Random information kommer att genereras för productName, category och tags.
 }
 ```
 
-
 ---
 
-## POST /product (Mode: withUrl)
+### 2.2 Skapa produkt via URL (Mode: withUrl)
 
-**Beskrivning:**  
-Lägger till en produkt genom att hämta produktinformation från en extern URL.
+**Endpoint:** `POST /product`
 
 **Request Body:**
+
 ```json
 {
   "mode": "withUrl",
@@ -108,6 +167,7 @@ Lägger till en produkt genom att hämta produktinformation från en extern URL.
 ```
 
 **Response:**
+
 ```json
 {
   "productId": "T12345",
@@ -119,12 +179,12 @@ Lägger till en produkt genom att hämta produktinformation från en extern URL.
 
 ---
 
-## POST /product (Mode: withDetails)
+### 2.3 Skapa produkt med detaljer (Mode: withDetails)
 
-**Beskrivning:**  
-Lägger till en produkt med detaljerad information som produktnamn, kategori och tags.
+**Endpoint:** `POST /product`
 
 **Request Body:**
+
 ```json
 {
   "mode": "withDetails",
@@ -136,6 +196,7 @@ Lägger till en produkt med detaljerad information som produktnamn, kategori och
 ```
 
 **Response:**
+
 ```json
 {
   "productId": "T12345",
@@ -147,12 +208,12 @@ Lägger till en produkt med detaljerad information som produktnamn, kategori och
 
 ---
 
-## POST /product (Mode: customReview)
+### 2.4 Lägg till egen recension (Mode: customReview)
 
-**Beskrivning:**  
-Lägger till en recension för en produkt.
+**Endpoint:** `POST /product`
 
 **Request Body:**
+
 ```json
 {
   "mode": "customReview",
@@ -166,45 +227,39 @@ Lägger till en recension för en produkt.
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Review added successfully"
 }
 ```
 
-# GET /products
+---
 
-**Beskrivning:**  
-Detta endpoint tar emot ett `productId` och returnerar produkten samt alla dess recensioner.
+### 2.5 Hämta produkt och recensioner
 
-## Request
+**Endpoint:** `GET /products`
 
-**URL:**  
-`GET /products`
+Tar emot `productId` som query-parameter och returnerar produkt samt alla recensioner.
 
-**Query Parameter:**
-- `productId` (string, obligatoriskt) – ID:t för produkten som du vill hämta.
+**URL:**
 
-**Exempel:**
-```json
-{
-  "productId": "T12345"
-}
+```
+GET /products?productId=T12345
 ```
 
-## Response
+**Response:**
 
-**Statuskod:**
-- `200 OK` – Om produkten och dess recensioner hämtas framgångsrikt.
-- `400 Bad Request` – Om `productId` saknas eller om produkten inte kan hittas.
-
-**Response Body:**
 ```json
 {
   "productId": "T12345",
-  "productName": "Whitesnake T-shirt",
-  "category": "T-shirts",
-  "tags": "hårdrock, 80-tal, svart, bomull",
+  "stats": {
+    "productId": "1T12345",
+    "productName": "Whitesnake T-shirt",
+    "currentAverage": 4.5,
+    "totalReviews": 2,
+    "lastReviewDate": "2025-04-26"
+  },
   "reviews": [
     {
       "date": "2025-04-01",
@@ -222,9 +277,80 @@ Detta endpoint tar emot ett `productId` och returnerar produkten samt alla dess 
 }
 ```
 
-### 6. Ta bort en produkt (Ej implementerad)
+---
+
+### 2.6 Ta bort en produkt (Mode: delete)
+
 **Endpoint:** `DELETE /products`
 
-Tar bort en produkt från systemet baserat på dess `productId`.
+Tar bort en produkt baserat på `productId`.
+
+**URL:**
+
+```
+DELETE /products?productId=T12345
+```
+
+**Response:**
+
+* `200 OK` – Om produkten raderades framgångsrikt.
+
+```json
+{
+  "message": "Product deleted successfully"
+}
+```
+
+* `400 Bad Request` – Om `productId` saknas eller ogiltigt.
+
+```json
+{
+  "error": "Invalid or missing productId"
+}
+```
+
+* `404 Not Found` – Om produkten inte finns.
+
+```json
+{
+  "error": "Product not found"
+}
+```
 
 ---
+
+## 3. Exempel med curl
+
+```bash
+# 1. Registrera användare
+curl -X POST http://161.97.151.105:8081/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"test_user","password":"secret123","authType":"password"}'
+
+# 2. Logga in och spara token
+TOKEN=$(curl -s -X POST http://161.97.151.105:8081/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"test_user","password":"secret123","authType":"password"}' \
+  | jq -r .token)
+
+# 3. Testa skyddad endpoint
+curl -X GET http://161.97.151.105:8081/test-auth \
+  -H "Authorization: Bearer $TOKEN"
+
+# 4. Skapa produkt (productOnly)
+curl -X POST http://161.97.151.105:8081/product \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"mode":"productOnly","productId":"T12345"}'
+
+# 5. Hämta produkt med recensioner
+curl -X GET "http://161.97.151.105:8081/products?productId=T12345" \
+  -H "Authorization: Bearer $TOKEN"
+
+# 6. Ta bort produkt
+curl -X DELETE "http://161.97.151.105:8081/products?productId=T12345" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+```
+
