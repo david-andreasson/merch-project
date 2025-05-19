@@ -3,6 +3,7 @@ package com.jin12.reviews_api.controller;
 import com.jin12.reviews_api.dto.AuthenticationRequest;
 import com.jin12.reviews_api.dto.AuthenticationResponse;
 import com.jin12.reviews_api.dto.RegisterRequest;
+import com.jin12.reviews_api.exception.BadRequestException;
 import com.jin12.reviews_api.model.User;
 import com.jin12.reviews_api.repository.UserRepository;
 import com.jin12.reviews_api.service.ApiKeyService;
@@ -25,6 +26,9 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request) {
         if ("API_KEY".equalsIgnoreCase(request.getAuthType())) {
+            if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+                throw new BadRequestException("Username already exists");
+            }
             User user = User.builder()
                     .username(request.getUsername())
                     .password(passwordEncoder.encode(request.getPassword()))
@@ -43,6 +47,9 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
         AuthenticationResponse response = authenticationService.authenticate(request);
+        if (response == null) {
+            throw new BadRequestException("Invalid username or password");
+        }
         return ResponseEntity.ok(response);
     }
 }
