@@ -44,28 +44,19 @@ public class AiReviewService {
     private static boolean USE_MOCK = false;
     // Final togs bort för att kunna köra tester
 
-//    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final WeatherService weatherService;
-//    private final String openAiApiKey;
-//    private final String openAiApiUrl;
     private final String oneMinAiApiKey;
     private final String oneMinAiApiUrl;
 
     public AiReviewService(
             WeatherService weatherService,
-//            RestTemplate restTemplate,
             ObjectMapper objectMapper,
-//            @Value("${OPENAI_API_KEY}") String openAiApiKey,
-//            @Value("${OPENAI_API_URL}") String openAiApiUrl,
             @Value("${ONEMINAI_API_KEY}") String oneMinAiApiKey,
             @Value("${ONEMINAI_API_URL}") String oneMinAiApiUrl
     ) {
         this.weatherService = weatherService;
-//        this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
-//        this.openAiApiKey = openAiApiKey;
-//        this.openAiApiUrl = openAiApiUrl;
         this.oneMinAiApiKey = oneMinAiApiKey;
         this.oneMinAiApiUrl = oneMinAiApiUrl;
     }
@@ -124,32 +115,6 @@ public class AiReviewService {
         long randomDate = rand.nextLong(twoMonthsAgo.toEpochDay(), today.toEpochDay());
         return LocalDate.ofEpochDay(randomDate);
     }
-
-//    private String requestAiReview(String prompt) throws JsonProcessingException {
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setBearerAuth(openAiApiKey);
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//
-//        Map<String, Object> body = Map.of(
-//                "model", "gpt-4",
-//                "messages", List.of(
-//                        Map.of("role", "system", "content", "Du är en hjälpsam AI som skriver produktrecensioner."),
-//                        Map.of("role", "user", "content", prompt)
-//                )
-//        );
-//
-//        //Skicka POST och hämta rå JSON
-//        HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, headers);
-//        String raw = restTemplate.postForObject(openAiApiUrl, req, String.class);
-//
-//        //Extrahera bara innehållet från svaret
-//        JsonNode root = objectMapper.readTree(raw);
-//        return root
-//                .path("choices").get(0)
-//                .path("message")
-//                .path("content")
-//                .asText();
-//    }
 
     private String requestAiReview(String prompt) throws IOException, InterruptedException {
         HttpHeaders headers = new HttpHeaders();
