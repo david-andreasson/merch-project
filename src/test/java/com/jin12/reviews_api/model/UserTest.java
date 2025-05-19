@@ -29,11 +29,12 @@ class UserTest {
     @Test
     void testAllArgsConstructor() {
         List<Product> productList = new ArrayList<>();
-        User user = new User(1L, "user1", "password1", productList);
+        User user = new User(1L, "user1", "password1", null, productList);
 
         assertThat(user.getId()).isEqualTo(1L);
         assertThat(user.getUsername()).isEqualTo("user1");
         assertThat(user.getPassword()).isEqualTo("password1");
+        assertThat(user.getEncryptedApiKey()).isNull();
         assertThat(user.getProducts()).isSameAs(productList);
     }
 

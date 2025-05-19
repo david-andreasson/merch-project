@@ -12,7 +12,15 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductInfo {
-    private String productName;
+    public String getProductName() {
+        return name;
+    }
+
+    public void setProductName(String name) {
+        this.name = name;
+    }
+
+    private String name;
     private String category;
     private List<String> tags;
 }

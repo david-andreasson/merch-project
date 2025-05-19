@@ -107,9 +107,15 @@ Content-Type: application/json
 
 {
   "mode": "withUrl",
-  "productId": "T12347",
-  "productInfoUrl": "http://localhost:8080/test?productId=T12347"
+  "productId": "7ffa534a-ffaf-4182-a2aa-5056e7b31c5a",
+  "productInfoUrl": "https://gbgmerch.mangopebble-f6036b59.northeurope.azurecontainerapps.io/api/basic/products/7ffa534a-ffaf-4182-a2aa-5056e7b31c5a"
 }
+
+//{
+//  "mode": "withUrl",
+//  "productId": "",
+//  "productInfoUrl": "http://localhost:8080/test?productId=T12347"
+//}
 
 ### 11) Lägg till egen recension
 POST {{host}}/product
@@ -125,3 +131,10 @@ Content-Type: application/json
     "rating": 5
   }
 }
+
+###
+POST {{host}}/user/api-key
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+GbgMerchApiKey

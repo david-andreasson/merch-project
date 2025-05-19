@@ -30,21 +30,21 @@ public class TestController {
 
     private void createProducts() {
         ProductInfo productInfo = ProductInfo.builder()
-                .productName("Volvo")
+                .name("Volvo")
                 .category("Car")
                 .tags(List.of("C30", "Grön", "Halvkombi"))
                 .build();
         products.put("T12345", productInfo);
 
         productInfo = ProductInfo.builder()
-                .productName("Ford")
+                .name("Ford")
                 .category("Car")
                 .tags(List.of("Focus", "Svart", "Kombi"))
                 .build();
         products.put("T12346", productInfo);
 
         productInfo = ProductInfo.builder()
-                .productName("Volkswagen")
+                .name("Volkswagen")
                 .category("Car")
                 .tags(List.of("Passat", "Silver", "Kombi"))
                 .build();
