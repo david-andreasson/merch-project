@@ -103,7 +103,9 @@ public class ProductController {
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + apiKey);  // Anpassa header enligt API
+        System.out.println(apiKey);
+//        headers.setBearerAuth(apiKey);
+        headers.set("X-API-KEY", apiKey);  // Anpassa header enligt API
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
         try {
@@ -114,7 +116,7 @@ public class ProductController {
                     ProductInfo.class
             );
 
-            ProductInfo info = restTemplate.getForObject(productRequest.getProductInfoUrl(), ProductInfo.class);
+            ProductInfo info = response.getBody();
             if (info == null) {
                 return ResponseEntity.badRequest().body("URL did not work correctly");
             }
