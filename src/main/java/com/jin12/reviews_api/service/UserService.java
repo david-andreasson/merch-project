@@ -1,9 +1,9 @@
 package com.jin12.reviews_api.service;
 
 import com.jin12.reviews_api.Utils.CryptoUtils;
+import com.jin12.reviews_api.exception.ApiKeyUpdateException;
 import com.jin12.reviews_api.model.User;
 import com.jin12.reviews_api.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,8 +16,11 @@ public class UserService implements UserDetailsService {
     @Value("${master.key}")
     private String masterKey;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -25,11 +28,16 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
-    public void updateUserApiKey(Long userId, String apiKey) throws Exception {
+    public void updateUserApiKey(Long userId, String apiKey) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User with id " + userId + " not found"));
-        String encryptedKey = CryptoUtils.encrypt(masterKey, apiKey);
-        user.setEncryptedApiKey(encryptedKey);
-        userRepository.save(user);
+                .orElseThrow(() -> new ApiKeyUpdateException("User with id " + userId + " not found"));
+
+        try {
+            String encryptedKey = CryptoUtils.encrypt(masterKey, apiKey);
+            user.setEncryptedApiKey(encryptedKey);
+            userRepository.save(user);
+        } catch (Exception e) {
+            throw new ApiKeyUpdateException("Failed to encrypt or save API key for user " + userId, e);
+        }
     }
 }

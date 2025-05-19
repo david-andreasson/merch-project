@@ -24,7 +24,7 @@ class UserServiceTest {
     @BeforeEach
     void setUp() throws Exception {
         userRepository = mock(UserRepository.class);
-        userService = new UserService();
+        userService = new UserService(userRepository);
 
         // Injicera mocken i private-fältet via reflektion
         Field repoField = UserService.class.getDeclaredField("userRepository");

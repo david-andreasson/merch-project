@@ -1,6 +1,10 @@
 package com.jin12.reviews_api.controller;
 
 import com.jin12.reviews_api.dto.*;
+import com.jin12.reviews_api.exception.ApiKeyException;
+import com.jin12.reviews_api.exception.ExternalServiceException;
+import com.jin12.reviews_api.exception.ProductAlreadyExistsException;
+import com.jin12.reviews_api.exception.ProductNotFoundException;
 import com.jin12.reviews_api.model.Product;
 import com.jin12.reviews_api.model.Review;
 import com.jin12.reviews_api.model.User;
@@ -56,7 +60,6 @@ public class ProductController {
                 respons = handleCustomReview(productRequest, user);
                 break;
             default:
-//                respons = new Product();
         }
 
         return respons;
@@ -70,17 +73,14 @@ public class ProductController {
         try {
             apiKey = apiKeyService.getDecryptedApiKey(user);
             if (apiKey == null || apiKey.isEmpty()) {
-                return ResponseEntity.badRequest().body("User has no API key configured");
+                throw new ApiKeyException("User has no API key configured");
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to decrypt API key");
+            throw new ApiKeyException("Failed to decrypt API key", e);
         }
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        System.out.println(apiKey);
-//        headers.setBearerAuth(apiKey);
         headers.set("X-API-KEY", apiKey);  // Anpassa header enligt API
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
@@ -102,8 +102,7 @@ public class ProductController {
 
             return handleWithDetails(productRequest, user);
         }catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                    .body("Error calling external product info service: " + e.getMessage());
+            throw new ExternalServiceException("Error calling external product info service", e);
         }
     }
 
@@ -112,6 +111,9 @@ public class ProductController {
 
         try {
             Product product = productService.getProductById(productId);
+            if (product == null) {
+                throw new ProductNotFoundException("Product does not exist");
+            }
             ReviewRequest reviewRequest = productRequest.getReview();
             Review review = new Review(
                     reviewRequest.getName(),
@@ -127,12 +129,11 @@ public class ProductController {
 
     private ResponseEntity<Object> handleWithDetails(ProductRequest productRequest, User user) {
         String productId = user.getId() + productRequest.getProductId();
-        Product product;
+        Product product = productService.getProductById(productId);
+            if (product != null) {
+                throw new ProductAlreadyExistsException("Product already exists");
+            }
 
-        try {
-            product = productService.getProductById(productId);
-            return ResponseEntity.badRequest().body("Product already exists");
-        } catch (Exception e) {
             product = Product.builder()
                     .productId(productId)
                     .productName(productRequest.getProductName())
@@ -141,7 +142,7 @@ public class ProductController {
                     .user(user)
                     .build();
             productService.addProduct(product);
-        }
+
 
         // Bygg productrespons med både produktinfo och reviews
         ProductRespons productRespons = ProductRespons.builder()
