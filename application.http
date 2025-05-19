@@ -1,6 +1,7 @@
 ### Ändra denna om vi skickar upp till hosting ###
 @host = http://localhost:8080
-@userPassUser = test_user123
+#@host = http://161.97.151.105
+@userPassUser = Alexander
 @userPassPassword = secret123
 @apiUser = test_user_api
 @apiPassword = secret123
@@ -123,7 +124,7 @@ Content-Type: application/json
 
 {
   "mode": "customReview",
-  "productId": "T12345",
+  "productId": "T12347",
   "review": {
     "name": "Anna",
     "text": "Riktigt bra produkt!",

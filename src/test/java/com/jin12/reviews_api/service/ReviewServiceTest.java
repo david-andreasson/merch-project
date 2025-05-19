@@ -9,6 +9,7 @@ import com.jin12.reviews_api.repository.ReviewRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -63,7 +64,7 @@ class ReviewServiceTest {
     }
 
     @Test
-    void testGetRecentReviewsEnough() throws JsonProcessingException {
+    void testGetRecentReviewsEnough() throws IOException, InterruptedException {
         Product product = new Product();
         product.setProductId("prod");
         List<Review> recentReviews = createReviews(5);

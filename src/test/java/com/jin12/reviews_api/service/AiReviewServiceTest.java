@@ -8,6 +8,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -25,8 +27,10 @@ class AiReviewServiceTest {
         objectMapper = new ObjectMapper();
         aiReviewService = new AiReviewService(
                 weatherService,
-                restTemplate,
+//                restTemplate,
                 objectMapper,
+//                "fake-api-key",
+//                "https://fake.api.url",
                 "fake-api-key",
                 "https://fake.api.url"
         );
@@ -42,7 +46,7 @@ class AiReviewServiceTest {
     }
 
     @Test
-    void generateReview_returnsMockedReview() throws JsonProcessingException {
+    void generateReview_returnsMockedReview() throws IOException, InterruptedException {
         // Arrange
         when(weatherService.getWeather()).thenReturn("Soligt");
 
