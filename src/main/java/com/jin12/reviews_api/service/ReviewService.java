@@ -20,6 +20,7 @@ public class ReviewService {
     private final AiReviewService aiReviewService;
 
     private static final int MIN_REVIEWS = 5;
+    private static final int MAX_REVIEWS = 10;
 
     public ReviewService(ReviewRepository reviewRepository, ProductRepository productRepository, AiReviewService aiReviewService) {
         this.reviewRepository = reviewRepository;
@@ -57,6 +58,11 @@ public class ReviewService {
         // Hämtar alla recensioner för de senaste 2 månaderna
         List<Review> allRecentReviews =
                 reviewRepository.findByProductAndDateAfter(product, fromDate);
+
+        //Limit number of reviews to MAX_REVIEWS
+        if (allRecentReviews.size() > MAX_REVIEWS) {
+            allRecentReviews = allRecentReviews.subList(0, MAX_REVIEWS);
+        }
 
         // Om vi har mindre än MIN_REVIEWS, ai-generera de som saknas
         int missing = MIN_REVIEWS - allRecentReviews.size();
