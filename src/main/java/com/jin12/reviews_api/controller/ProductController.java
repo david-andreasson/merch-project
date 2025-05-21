@@ -4,7 +4,6 @@ import com.jin12.reviews_api.dto.*;
 import com.jin12.reviews_api.model.Product;
 import com.jin12.reviews_api.model.Review;
 import com.jin12.reviews_api.model.User;
-import com.jin12.reviews_api.dto.ProductInfo;
 import com.jin12.reviews_api.service.ApiKeyService;
 import com.jin12.reviews_api.service.ProductService;
 import com.jin12.reviews_api.service.ReviewService;
@@ -16,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 
@@ -28,6 +28,20 @@ public class ProductController {
     private final ProductService productService;
     private final ReviewService reviewService;
     private final ApiKeyService apiKeyService;
+
+    //Detta går säkert göra på nåt snyggare sätt men whatever :-)
+    @Value("${merch1.url}")
+    private String merch1Url;
+    @Value("${merch2.url}")
+    private String merch2Url;
+    @Value("${merch1.api.key}")
+    private String merch1ApiKey;
+    @Value("${merch2.api.key}")
+    private String merch2ApiKey;
+    @Value("${merch3.url}")
+    private String merch3Url;
+    @Value("${merch3.api.key}")
+    private String merch3ApiKey;
 
     @GetMapping("/{productId}")
     public ResponseEntity<ReviewsRespons> getReviews(
@@ -199,5 +213,66 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Product with ID " + productId + " not found or could not be deleted");
         }
+    }
+
+    @GetMapping("/importMerchMultiple")
+    public ResponseEntity<String> importMerchMultiple(@AuthenticationPrincipal User currentUser) {
+        log.info("importMerchMultiple – start för userId={}", currentUser.getId());
+        RestTemplate restTemplate = new RestTemplate();
+        int importedCount = 0;
+
+        String[][] endpoints = {
+                { merch1Url, merch1ApiKey },
+                { merch2Url, merch2ApiKey },
+                { merch3Url, merch3ApiKey }
+        };
+
+        for (String[] ep : endpoints) {
+            String baseUrl = ep[0], apiKey = ep[1];
+            log.debug("importMerchMultiple – hämtar från {}", baseUrl);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-API-KEY", apiKey);
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+
+            try {
+                BasicProductDto[] externals = restTemplate
+                        .exchange(baseUrl, HttpMethod.GET, requestEntity, BasicProductDto[].class)
+                        .getBody();
+
+                if (externals == null || externals.length == 0) {
+                    log.warn("importMerchMultiple – inget innehåll från {}", baseUrl);
+                    continue;
+                }
+
+                for (BasicProductDto dto : externals) {
+                    String fullId = currentUser.getId().toString() + dto.getId();
+                    log.debug("importMerchMultiple – bearbetar productId={}", fullId);
+
+                    Product p = Product.builder()
+                            .productId(fullId)
+                            .productName(dto.getName())
+                            .category(dto.getCategory())
+                            .tags(String.join(", ", dto.getTags()))
+                            .user(currentUser)
+                            .build();
+
+                    productService.addProduct(p);
+
+                    try {
+                        reviewService.getRecentReviews(fullId);
+                    } catch (Exception reviewEx) {
+                        log.error("importMerchMultiple – fel vid AI-generering för {}: {}", fullId, reviewEx.getMessage(), reviewEx);
+                    }
+
+                    importedCount++;
+                }
+            } catch (Exception e) {
+                log.error("importMerchMultiple – fel vid import från {}: {}", baseUrl, e.getMessage(), e);
+            }
+        }
+
+        log.info("importMerchMultiple – klar, importerade {} produkter för userId={}", importedCount, currentUser.getId());
+        return ResponseEntity.ok("Importerade totalt " + importedCount + " produkter.");
     }
 }
