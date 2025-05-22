@@ -1,6 +1,7 @@
 package com.jin12.reviews_api.service;
 
 import com.jin12.reviews_api.Utils.CryptoUtils;
+import com.jin12.reviews_api.exception.ApiKeyException;
 import com.jin12.reviews_api.model.ApiKey;
 import com.jin12.reviews_api.model.User;
 import com.jin12.reviews_api.repository.ApiKeyRepository;
@@ -28,16 +29,20 @@ public class ApiKeyService {
         this.apiKeyRepository = apiKeyRepository;
     }
 
-    public String getDecryptedApiKey(User user) throws Exception {
+    public String getDecryptedApiKey(User user) throws ApiKeyException {
         log.debug("getDecryptedApiKey – start for userId={}", user.getId());
         String encryptedKey = user.getEncryptedApiKey();
         if (encryptedKey == null) {
             log.warn("getDecryptedApiKey – no encrypted key for userId={}", user.getId());
             return null;
         }
-        String decrypted = CryptoUtils.decrypt(masterKey, encryptedKey);
-        log.debug("getDecryptedApiKey – decrypted key for userId={}", user.getId());
-        return decrypted;
+        try {
+            String decrypted = CryptoUtils.decrypt(masterKey, encryptedKey);
+            log.debug("getDecryptedApiKey – decrypted key for userId={}", user.getId());
+            return decrypted;
+        } catch (Exception e) {
+            throw new ApiKeyException("Invalid API key", e);
+        }
     }
 
     public String createApiKey(User user) {

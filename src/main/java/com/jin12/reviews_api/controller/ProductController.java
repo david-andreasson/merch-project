@@ -1,10 +1,7 @@
 package com.jin12.reviews_api.controller;
 
 import com.jin12.reviews_api.dto.*;
-import com.jin12.reviews_api.exception.ApiKeyException;
-import com.jin12.reviews_api.exception.ExternalServiceException;
-import com.jin12.reviews_api.exception.ProductAlreadyExistsException;
-import com.jin12.reviews_api.exception.ProductNotFoundException;
+import com.jin12.reviews_api.exception.*;
 import com.jin12.reviews_api.model.Product;
 import com.jin12.reviews_api.model.Review;
 import com.jin12.reviews_api.model.User;
@@ -66,6 +63,7 @@ public class ProductController {
                 break;
             default:
                 log.warn("addProducts – unknown mode={} by userId={}", productRequest.getMode(), user.getId());
+                throw new BadRequestException("Invalid mode");
         }
         log.debug("addProducts – response status={}", respons.getStatusCode());
         return respons;
@@ -75,7 +73,7 @@ public class ProductController {
         log.info("handleWithUrl – productInfoUrl={} by userId={}", productRequest.getProductInfoUrl(), user.getId());
         if (productRequest.getProductId() == null) {
             log.warn("handleWithUrl – missing product URL for userId={}", user.getId());
-            return ResponseEntity.badRequest().body("Missing product URL");
+            throw new BadRequestException("Missing product URL");
         }
         String apiKey;
         try {
@@ -86,7 +84,7 @@ public class ProductController {
             }
         } catch (Exception e) {
             log.error("handleWithUrl – failed to decrypt API key for userId={}", user.getId(), e);
-            throw new ApiKeyException("Failed to decrypt API key", e);
+            throw new ApiKeyException("Failed to decrypt API key or no Api key exists", e);
         }
 
         RestTemplate restTemplate = new RestTemplate();
@@ -105,14 +103,14 @@ public class ProductController {
             ProductInfo info = response.getBody();
             if (info == null) {
                 log.warn("handleWithUrl – empty body from external service for userId={}", user.getId());
-                return ResponseEntity.badRequest().body("URL did not work correctly");
+                throw new BadRequestException("Url did not work correctly");
             }
             productRequest.setProductName(info.getProductName());
             productRequest.setCategory(info.getCategory());
             productRequest.setTags(info.getTags());
 
             return handleWithDetails(productRequest, user);
-        } catch (Exception e) {
+        }catch (RestClientException e) {
             log.error("handleWithUrl – error calling external service for userId={}", user.getId(), e);
             throw new ExternalServiceException("Error calling external product info service", e);
         }
@@ -122,7 +120,7 @@ public class ProductController {
         String productId = user.getId() + productRequest.getProductId();
         log.info("handleCustomReview – fullProductId={}, reviewer={}", productId, productRequest.getReview().getName());
 
-        try {
+
             Product product = productService.getProductById(productId);
             if (product == null) {
                 throw new ProductNotFoundException("Product does not exist");
@@ -136,10 +134,7 @@ public class ProductController {
             reviewService.addReview(productId, review);
             log.info("handleCustomReview – review added for fullProductId={}", productId);
             return ResponseEntity.status(HttpStatus.CREATED).body("Review added successfully");
-        } catch (Exception e) {
-            log.warn("handleCustomReview – product not found fullProductId={}", productId);
-            return ResponseEntity.badRequest().body("Product does not exist");
-        }
+
     }
 
     private ResponseEntity<Object> handleWithDetails(ProductRequest productRequest, User user) {
@@ -204,8 +199,7 @@ public class ProductController {
             return ResponseEntity.ok("Product and related reviews deleted successfully");
         } catch (Exception e) {
             log.warn("deleteProduct – failed to delete fullProductId={}", fullProductId, e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Product with ID " + productId + " not found or could not be deleted");
+            throw new ProductNotFoundException("Product not found and not deleted");
         }
     }
 }

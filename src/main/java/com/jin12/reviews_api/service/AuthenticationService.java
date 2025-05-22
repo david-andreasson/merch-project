@@ -3,6 +3,7 @@ package com.jin12.reviews_api.service;
 import com.jin12.reviews_api.dto.AuthenticationRequest;
 import com.jin12.reviews_api.dto.AuthenticationResponse;
 import com.jin12.reviews_api.dto.RegisterRequest;
+import com.jin12.reviews_api.exception.BadRequestException;
 import com.jin12.reviews_api.model.ApiKey;
 import com.jin12.reviews_api.model.User;
 import com.jin12.reviews_api.repository.UserRepository;
@@ -10,9 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -54,27 +54,29 @@ public class AuthenticationService {
             Optional<ApiKey> validKey = apiKeyService.findValidKey(request.getApiKey());
             if (validKey.isEmpty()) {
                 log.warn("authenticate – invalid API key provided");
-                throw new BadCredentialsException("Invalid API key");
+                throw new BadRequestException("Invalid API key");
             }
             User user = validKey.get().getUser();
             String token = jwtService.generateToken(user);
             log.info("authenticate – api key authentication succeeded for userId={}", user.getId());
             return AuthenticationResponse.builder().token(token).build();
         }
-
-        log.info("authenticate – login attempt username={}", request.getUsername());
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
-        log.debug("authenticate – credentials accepted by AuthenticationManager for username={}", request.getUsername());
-
+        try {
+            log.info("authenticate – login attempt username={}", request.getUsername());
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername(),
+                            request.getPassword()
+                    )
+            );
+            log.debug("authenticate – credentials accepted by AuthenticationManager for username={}", request.getUsername());
+        }catch (AuthenticationException e){
+            throw new BadRequestException("Invalid username or password");
+        }
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> {
                     log.error("authenticate – user not found username={}", request.getUsername());
-                    return new UsernameNotFoundException("User not found");
+                    return new BadRequestException("User not found");
                 });
 
         String token = jwtService.generateToken(user);

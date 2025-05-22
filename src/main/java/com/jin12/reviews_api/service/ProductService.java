@@ -1,5 +1,6 @@
 package com.jin12.reviews_api.service;
 
+import com.jin12.reviews_api.exception.ProductAlreadyExistsException;
 import com.jin12.reviews_api.model.Product;
 import com.jin12.reviews_api.repository.ProductRepository;
 import org.slf4j.Logger;
@@ -20,6 +21,9 @@ public class ProductService {
 
     public Product addProduct(Product product) {
         log.info("addProduct – försök spara produkt: productName={}, category={}", product.getProductName(), product.getCategory());
+        if (productRepository.findByProductId(product.getProductId()).isPresent()) {
+            throw new ProductAlreadyExistsException("Produkt med ID " + product.getProductId() + " finns redan.");
+        }
         Product saved = productRepository.save(product);  // Spara produkten i databasen och returnera den.
         log.info("addProduct – sparad produkt med productId={}", saved.getProductId());
         return saved;
