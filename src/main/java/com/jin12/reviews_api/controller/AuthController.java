@@ -25,10 +25,10 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request) {
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            throw new BadRequestException("Username already exists");
+        }
         if ("API_KEY".equalsIgnoreCase(request.getAuthType())) {
-            if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-                throw new BadRequestException("Username already exists");
-            }
             User user = User.builder()
                     .username(request.getUsername())
                     .password(passwordEncoder.encode(request.getPassword()))
@@ -47,9 +47,6 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
         AuthenticationResponse response = authenticationService.authenticate(request);
-        if (response == null) {
-            throw new BadRequestException("Invalid username or password");
-        }
         return ResponseEntity.ok(response);
     }
 }

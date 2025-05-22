@@ -3,14 +3,14 @@ package com.jin12.reviews_api.service;
 import com.jin12.reviews_api.dto.AuthenticationRequest;
 import com.jin12.reviews_api.dto.AuthenticationResponse;
 import com.jin12.reviews_api.dto.RegisterRequest;
+import com.jin12.reviews_api.exception.BadRequestException;
 import com.jin12.reviews_api.model.ApiKey;
 import com.jin12.reviews_api.model.User;
 import com.jin12.reviews_api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -43,22 +43,24 @@ public class AuthenticationService {
         if ("API_KEY".equalsIgnoreCase(request.getAuthType())) {
             Optional<ApiKey> validKey = apiKeyService.findValidKey(request.getApiKey());
             if (validKey.isEmpty()) {
-                throw new BadCredentialsException("Invalid API key");
+                throw new BadRequestException("Invalid API key");
             }
             User user = validKey.get().getUser();
             String token = jwtService.generateToken(user);
             return AuthenticationResponse.builder().token(token).build();
         }
-
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
-
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername(),
+                            request.getPassword()
+                    )
+            );
+        }catch (AuthenticationException e){
+            throw new BadRequestException("Invalid username or password");
+        }
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         String token = jwtService.generateToken(user);
         return AuthenticationResponse.builder()

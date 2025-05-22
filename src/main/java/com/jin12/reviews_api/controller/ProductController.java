@@ -1,10 +1,7 @@
 package com.jin12.reviews_api.controller;
 
 import com.jin12.reviews_api.dto.*;
-import com.jin12.reviews_api.exception.ApiKeyException;
-import com.jin12.reviews_api.exception.ExternalServiceException;
-import com.jin12.reviews_api.exception.ProductAlreadyExistsException;
-import com.jin12.reviews_api.exception.ProductNotFoundException;
+import com.jin12.reviews_api.exception.*;
 import com.jin12.reviews_api.model.Product;
 import com.jin12.reviews_api.model.Review;
 import com.jin12.reviews_api.model.User;
@@ -17,6 +14,7 @@ import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -59,7 +57,7 @@ public class ProductController {
             case "customReview":
                 respons = handleCustomReview(productRequest, user);
                 break;
-            default:
+            default: throw new BadRequestException("Invalid mode");
         }
 
         return respons;
@@ -67,7 +65,7 @@ public class ProductController {
 
     private ResponseEntity<Object> handleWithUrl(ProductRequest productRequest, User user) {
         if (productRequest.getProductId() == null) {
-            return ResponseEntity.badRequest().body("Missing product URL");
+            throw new BadRequestException("Missing product URL");
         }
         String apiKey;
         try {
@@ -76,7 +74,7 @@ public class ProductController {
                 throw new ApiKeyException("User has no API key configured");
             }
         } catch (Exception e) {
-            throw new ApiKeyException("Failed to decrypt API key", e);
+            throw new ApiKeyException("Failed to decrypt API key or no Api key exists", e);
         }
 
         RestTemplate restTemplate = new RestTemplate();
@@ -94,14 +92,14 @@ public class ProductController {
 
             ProductInfo info = response.getBody();
             if (info == null) {
-                return ResponseEntity.badRequest().body("URL did not work correctly");
+                throw new BadRequestException("Url did not work correctly");
             }
             productRequest.setProductName(info.getProductName());
             productRequest.setCategory(info.getCategory());
             productRequest.setTags(info.getTags());
 
             return handleWithDetails(productRequest, user);
-        }catch (Exception e) {
+        }catch (RestClientException e) {
             throw new ExternalServiceException("Error calling external product info service", e);
         }
     }
@@ -109,7 +107,7 @@ public class ProductController {
     private ResponseEntity<Object> handleCustomReview(ProductRequest productRequest, User user) {
         String productId = user.getId() + productRequest.getProductId();
 
-        try {
+
             Product product = productService.getProductById(productId);
             if (product == null) {
                 throw new ProductNotFoundException("Product does not exist");
@@ -122,9 +120,7 @@ public class ProductController {
                     false);
             reviewService.addReview(productId, review);
             return ResponseEntity.status(HttpStatus.CREATED).body("Review added successfully");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Product does not exist");
-        }
+
     }
 
     private ResponseEntity<Object> handleWithDetails(ProductRequest productRequest, User user) {
@@ -182,8 +178,7 @@ public class ProductController {
 
             return ResponseEntity.ok("Product and related reviews deleted successfully");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Product with ID " + productId + " not found or could not be deleted");
+            throw new ProductNotFoundException("Product not found and not deleted");
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.jin12.reviews_api.service;
 
+import com.jin12.reviews_api.exception.ProductAlreadyExistsException;
 import com.jin12.reviews_api.model.Product;
 import com.jin12.reviews_api.repository.ProductRepository;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,9 @@ public class ProductService {
     }
 
     public Product addProduct(Product product) {
+        if (productRepository.findByProductId(product.getProductId()).isPresent()) {
+            throw new ProductAlreadyExistsException("Produkt med ID " + product.getProductId() + " finns redan.");
+        }
         return productRepository.save(product);  // Spara produkten i databasen och returnera den.
     }
 
