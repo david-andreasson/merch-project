@@ -13,6 +13,8 @@ import com.jin12.reviews_api.service.ApiKeyService;
 import com.jin12.reviews_api.service.ProductService;
 import com.jin12.reviews_api.service.ReviewService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,25 +27,28 @@ import java.util.List;
 @RequestMapping("/product")
 @RequiredArgsConstructor
 public class ProductController {
+    private static final Logger log = LoggerFactory.getLogger(ProductController.class);
+
     private final ProductService productService;
     private final ReviewService reviewService;
     private final ApiKeyService apiKeyService;
-
 
     @GetMapping("/{productId}")
     public ResponseEntity<ReviewsRespons> getReviews(
             @PathVariable String productId,
             @AuthenticationPrincipal User currentUser) {
         String fullProductId = currentUser.getId().toString() + productId;
+        log.info("getReviews – productId={}, fullProductId={}, userId={}", productId, fullProductId, currentUser.getId());
         ReviewsRespons resp = reviewService.getReviewsForProduct(fullProductId);
+        log.debug("getReviews – returning {} reviews for fullProductId={}", resp.getReviews().size(), fullProductId);
         return ResponseEntity.ok(resp);
     }
-
 
     @PostMapping
     public ResponseEntity<Object> addProducts(@RequestBody ProductRequest productRequest,
                                               @AuthenticationPrincipal UserDetails userDetails) {
         User user = (User) userDetails;
+        log.info("addProducts – mode={} by userId={}", productRequest.getMode(), user.getId());
 
         ResponseEntity<Object> respons = null;
         switch (productRequest.getMode()) {
@@ -60,22 +65,27 @@ public class ProductController {
                 respons = handleCustomReview(productRequest, user);
                 break;
             default:
+                log.warn("addProducts – unknown mode={} by userId={}", productRequest.getMode(), user.getId());
         }
-
+        log.debug("addProducts – response status={}", respons.getStatusCode());
         return respons;
     }
 
     private ResponseEntity<Object> handleWithUrl(ProductRequest productRequest, User user) {
+        log.info("handleWithUrl – productInfoUrl={} by userId={}", productRequest.getProductInfoUrl(), user.getId());
         if (productRequest.getProductId() == null) {
+            log.warn("handleWithUrl – missing product URL for userId={}", user.getId());
             return ResponseEntity.badRequest().body("Missing product URL");
         }
         String apiKey;
         try {
             apiKey = apiKeyService.getDecryptedApiKey(user);
             if (apiKey == null || apiKey.isEmpty()) {
+                log.warn("handleWithUrl – no API key configured for userId={}", user.getId());
                 throw new ApiKeyException("User has no API key configured");
             }
         } catch (Exception e) {
+            log.error("handleWithUrl – failed to decrypt API key for userId={}", user.getId(), e);
             throw new ApiKeyException("Failed to decrypt API key", e);
         }
 
@@ -94,6 +104,7 @@ public class ProductController {
 
             ProductInfo info = response.getBody();
             if (info == null) {
+                log.warn("handleWithUrl – empty body from external service for userId={}", user.getId());
                 return ResponseEntity.badRequest().body("URL did not work correctly");
             }
             productRequest.setProductName(info.getProductName());
@@ -101,13 +112,15 @@ public class ProductController {
             productRequest.setTags(info.getTags());
 
             return handleWithDetails(productRequest, user);
-        }catch (Exception e) {
+        } catch (Exception e) {
+            log.error("handleWithUrl – error calling external service for userId={}", user.getId(), e);
             throw new ExternalServiceException("Error calling external product info service", e);
         }
     }
 
     private ResponseEntity<Object> handleCustomReview(ProductRequest productRequest, User user) {
         String productId = user.getId() + productRequest.getProductId();
+        log.info("handleCustomReview – fullProductId={}, reviewer={}", productId, productRequest.getReview().getName());
 
         try {
             Product product = productService.getProductById(productId);
@@ -121,14 +134,17 @@ public class ProductController {
                     reviewRequest.getRating(),
                     false);
             reviewService.addReview(productId, review);
+            log.info("handleCustomReview – review added for fullProductId={}", productId);
             return ResponseEntity.status(HttpStatus.CREATED).body("Review added successfully");
         } catch (Exception e) {
+            log.warn("handleCustomReview – product not found fullProductId={}", productId);
             return ResponseEntity.badRequest().body("Product does not exist");
         }
     }
 
     private ResponseEntity<Object> handleWithDetails(ProductRequest productRequest, User user) {
         String productId = user.getId() + productRequest.getProductId();
+        log.info("handleWithDetails – fullProductId={}", productId);
         Product product = null;
         try {
             product = productService.getProductById(productId);
@@ -137,9 +153,11 @@ public class ProductController {
         }
 
             if (product != null) {
+                log.warn("handleWithDetails – product already exists fullProductId={}", productId);
                 throw new ProductAlreadyExistsException("Product already exists");
             }
 
+            log.debug("handleWithDetails – creating product fullProductId={}", productId);
             product = Product.builder()
                     .productId(productId)
                     .productName(productRequest.getProductName())
@@ -148,6 +166,7 @@ public class ProductController {
                     .user(user)
                     .build();
             productService.addProduct(product);
+            log.info("handleWithDetails – product created fullProductId={}", productId);
 
 
         // Bygg productrespons med både produktinfo och reviews
@@ -157,10 +176,12 @@ public class ProductController {
                 .category(product.getCategory())
                 .tags(product.getTags())
                 .build();
+        log.debug("handleWithDetails – returning ProductRespons fullProductId={}", productId);
         return ResponseEntity.status(HttpStatus.CREATED).body(productRespons);
     }
 
     private ResponseEntity<Object> handleProductOnly(ProductRequest productRequest, User user) {
+        log.info("handleProductOnly – setting defaults for userId={}", user.getId());
         productRequest.setProductName("Whitesnake T-shirt");
         productRequest.setCategory("T-shirt");
         productRequest.setTags(List.of("hårdrock", "80-tal", "svart", "bomull"));
@@ -172,16 +193,17 @@ public class ProductController {
                                                 @AuthenticationPrincipal UserDetails userDetails) {
         User user = (User) userDetails;
         String fullProductId = user.getId() + productId;
+        log.info("deleteProduct – productId={}, fullProductId={}, userId={}", productId, fullProductId, user.getId());
 
         try {
             // Ta bort relaterade recensioner först
             reviewService.deleteReviewsByProductId(fullProductId);
-
             // Ta sedan bort produkten
             productService.deleteProduct(fullProductId);
-
+            log.info("deleteProduct – deleted product and reviews fullProductId={}", fullProductId);
             return ResponseEntity.ok("Product and related reviews deleted successfully");
         } catch (Exception e) {
+            log.warn("deleteProduct – failed to delete fullProductId={}", fullProductId, e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Product with ID " + productId + " not found or could not be deleted");
         }
