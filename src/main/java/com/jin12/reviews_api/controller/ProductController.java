@@ -129,7 +129,13 @@ public class ProductController {
 
     private ResponseEntity<Object> handleWithDetails(ProductRequest productRequest, User user) {
         String productId = user.getId() + productRequest.getProductId();
-        Product product = productService.getProductById(productId);
+        Product product = null;
+        try {
+            product = productService.getProductById(productId);
+        } catch (RuntimeException e) {
+            //if catch then continue
+        }
+
             if (product != null) {
                 throw new ProductAlreadyExistsException("Product already exists");
             }
