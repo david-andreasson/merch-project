@@ -3,6 +3,7 @@ package com.jin12.reviews_api.service;
 import com.jin12.reviews_api.dto.AuthenticationRequest;
 import com.jin12.reviews_api.dto.AuthenticationResponse;
 import com.jin12.reviews_api.dto.RegisterRequest;
+import com.jin12.reviews_api.exception.BadRequestException;
 import com.jin12.reviews_api.model.ApiKey;
 import com.jin12.reviews_api.model.User;
 import com.jin12.reviews_api.repository.UserRepository;
@@ -12,7 +13,6 @@ import org.mockito.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
@@ -95,7 +95,7 @@ public class AuthenticationServiceTest {
                 .thenThrow(new BadCredentialsException("Invalid credentials"));
 
         // Verifiera att ett BadCredentialsException kastas
-        assertThrows(BadCredentialsException.class, () -> {
+        assertThrows(BadRequestException.class, () -> {
             authenticationService.authenticate(request);
         });
     }
@@ -136,7 +136,7 @@ public class AuthenticationServiceTest {
         AuthenticationRequest request = new AuthenticationRequest(null, null, "invalid-api-key", "API_KEY");
         when(apiKeyService.findValidKey(request.getApiKey())).thenReturn(java.util.Optional.empty());
 
-        assertThrows(BadCredentialsException.class, () -> authenticationService.authenticate(request));
+        assertThrows(BadRequestException.class, () -> authenticationService.authenticate(request));
     }
 
     @Test
@@ -145,6 +145,6 @@ public class AuthenticationServiceTest {
         AuthenticationRequest request = new AuthenticationRequest("nonexistentuser", "password123", null, "USERNAME_PASSWORD");
         when(userRepository.findByUsername(request.getUsername())).thenReturn(java.util.Optional.empty());
 
-        assertThrows(UsernameNotFoundException.class, () -> authenticationService.authenticate(request));
+        assertThrows(BadRequestException.class, () -> authenticationService.authenticate(request));
     }
 }

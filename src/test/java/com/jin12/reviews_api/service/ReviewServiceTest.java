@@ -1,7 +1,7 @@
 package com.jin12.reviews_api.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jin12.reviews_api.dto.ReviewStatsResponse;
+import com.jin12.reviews_api.exception.ProductNotFoundException;
 import com.jin12.reviews_api.model.Product;
 import com.jin12.reviews_api.model.Review;
 import com.jin12.reviews_api.repository.ProductRepository;
@@ -104,7 +104,7 @@ class ReviewServiceTest {
     void testGetRecentReviewsProductNotFound() {
         when(productRepository.findById("bad")).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrows(ProductNotFoundException.class, () ->
                 reviewService.getRecentReviews("bad"));
     }
 
