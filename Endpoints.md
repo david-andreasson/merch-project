@@ -350,6 +350,10 @@ curl -X GET "http://161.97.151.105:8081/product/T12345" \
 # 6. Ta bort produkt
 curl -X DELETE "http://161.97.151.105:8081/product/T12345" \
   -H "Authorization: Bearer $TOKEN"
+  
+# 7. Hämta en lista på alla produkter ni lagt till i databasen,
+curl -X GET http://161.97.151.105:8081/product/all \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 ```
