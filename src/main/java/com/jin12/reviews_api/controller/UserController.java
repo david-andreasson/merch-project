@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-
     @PostMapping("/api-key")
     public ResponseEntity<String> setApiKey(@RequestBody String rawKey, @AuthenticationPrincipal User user) {
             userService.updateUserApiKey(user.getId(), rawKey);

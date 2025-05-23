@@ -93,7 +93,7 @@ Authorization: Bearer <token>
 * `200 OK` – OK om token är giltig.
 
 
-### 1.4 Register API-KEY
+### 1.4 Registrera API-KEY till ert API
 
 **Endpoint:** `POST /user/api-key`
 
@@ -238,14 +238,14 @@ Content-Type: application/json
 
 ### 2.5 Hämta produkt och recensioner
 
-**Endpoint:** `GET /products`
+**Endpoint:** `GET /product`
 
 Tar emot `productId` som query-parameter och returnerar produkt samt alla recensioner.
 
 **URL:**
 
 ```
-GET /products?productId=T12345
+GET /product/T12345
 ```
 
 **Response:**
@@ -281,14 +281,14 @@ GET /products?productId=T12345
 
 ### 2.6 Ta bort en produkt (Mode: delete)
 
-**Endpoint:** `DELETE /products`
+**Endpoint:** `DELETE /product`
 
 Tar bort en produkt baserat på `productId`.
 
 **URL:**
 
 ```
-DELETE /products?productId=T12345
+DELETE /product/T12345
 ```
 
 **Response:**
@@ -344,11 +344,11 @@ curl -X POST http://161.97.151.105:8081/product \
   -d '{"mode":"productOnly","productId":"T12345"}'
 
 # 5. Hämta produkt med recensioner
-curl -X GET "http://161.97.151.105:8081/products?productId=T12345" \
+curl -X GET "http://161.97.151.105:8081/product/T12345" \
   -H "Authorization: Bearer $TOKEN"
 
 # 6. Ta bort produkt
-curl -X DELETE "http://161.97.151.105:8081/products?productId=T12345" \
+curl -X DELETE "http://161.97.151.105:8081/product/T12345" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
