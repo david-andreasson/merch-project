@@ -1,7 +1,7 @@
 ### Ändra denna om vi skickar upp till hosting ###
 #@host = http://localhost:8080
 @host = http://161.97.151.105:8081
-@userPassUser = Alexander
+@userPassUser = Erik
 @userPassPassword = secret123
 @apiUser = test_user_api
 @apiPassword = secret123
@@ -138,3 +138,9 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 GbgMerchApiKey
+
+###
+GET {{host}}/product/all
+Authorization: Bearer {{token}}
+Content-Type: application/json
+

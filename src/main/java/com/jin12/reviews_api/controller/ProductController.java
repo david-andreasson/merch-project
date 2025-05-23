@@ -39,6 +39,25 @@ public class ProductController {
         return ResponseEntity.ok(resp);
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<List<ProductRespons>> getAllProducts(
+            @AuthenticationPrincipal User currentUser) {
+        List<Product> products = productService.getProductsByUser(currentUser.getId());
+        List<ProductRespons> productResponsList = new ArrayList<>();
+        for (Product product : products) {
+            //Remove userId from productId
+            int userIdSize = currentUser.getId().toString().length();
+            String productId = product.getProductId().substring(userIdSize);
+            productResponsList.add(ProductRespons.builder()
+                            .productId(productId)
+                            .productName(product.getProductName())
+                            .category(product.getCategory())
+                            .tags(product.getTags())
+                            .build());
+        }
+        return ResponseEntity.ok(productResponsList);
+    }
+
 
     @PostMapping
     public ResponseEntity<Object> addProducts(@RequestBody ProductRequest productRequest,
