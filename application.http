@@ -1,7 +1,7 @@
 ### Ändra denna om vi skickar upp till hosting ###
-#@host = http://localhost:8080
-@host = http://161.97.151.105:8081
-@userPassUser = Alexander
+@host = http://localhost:8080
+#host = http://161.97.151.105:8081
+@userPassUser = Erik
 @userPassPassword = secret123
 @apiUser = test_user_api
 @apiPassword = secret123
@@ -94,7 +94,7 @@ Content-Type: application/json
 
 {
   "mode": "withDetails",
-  "productId": "T12346",
+  "productId": "T12345",
   "productName": "Min Produkt",
   "category": "Kategori",
   "tags": ["tag1", "tag2"]
@@ -138,3 +138,9 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 GbgMerchApiKey
+
+###
+GET {{host}}/product/all
+Authorization: Bearer {{token}}
+Content-Type: application/json
+

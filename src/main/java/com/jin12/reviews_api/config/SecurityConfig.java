@@ -2,6 +2,8 @@ package com.jin12.reviews_api.config;
 
 import com.jin12.reviews_api.security.JwtAuthenticationFilter;
 import com.jin12.reviews_api.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +27,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
+
     @Autowired
     private JwtAuthenticationFilter jwtAuthFilter;
 
@@ -33,7 +37,8 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
+        log.info("Configuring SecurityFilterChain");
+        SecurityFilterChain chain = http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login").permitAll()
@@ -52,20 +57,25 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
+        log.info("SecurityFilterChain configured successfully");
+        return chain;
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
+        log.debug("Creating PasswordEncoder bean");
         return new BCryptPasswordEncoder();
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        log.debug("Creating AuthenticationManager bean");
         return config.getAuthenticationManager();
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
+        log.debug("Creating DaoAuthenticationProvider");
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userService);
         authProvider.setPasswordEncoder(passwordEncoder());
