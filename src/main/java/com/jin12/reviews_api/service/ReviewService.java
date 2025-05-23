@@ -3,6 +3,7 @@ package com.jin12.reviews_api.service;
 import com.jin12.reviews_api.dto.ReviewRespons;
 import com.jin12.reviews_api.dto.ReviewStatsResponse;
 import com.jin12.reviews_api.dto.ReviewsRespons;
+import com.jin12.reviews_api.exception.ProductNotFoundException;
 import com.jin12.reviews_api.model.Product;
 import com.jin12.reviews_api.model.Review;
 import com.jin12.reviews_api.repository.ProductRepository;
@@ -67,7 +68,7 @@ public class ReviewService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> {
                     log.warn("getRecentReviews – produkt saknas productId={}", productId);
-                    return new IllegalArgumentException("Produkt finns inte");
+                    return new ProductNotFoundException("Product does not exist");
                 });
 
         // Datumgräns för de senaste 2 månaderna

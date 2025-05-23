@@ -2,6 +2,7 @@ package com.jin12.reviews_api.Utils;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 
 public class CryptoUtils {
