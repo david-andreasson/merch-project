@@ -10,6 +10,7 @@ import com.jin12.reviews_api.service.ApiKeyService;
 import com.jin12.reviews_api.service.ProductService;
 import com.jin12.reviews_api.service.ReviewService;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
@@ -139,7 +140,7 @@ public class ProductController {
     }
 
     private ResponseEntity<Object> handleCustomReview(ProductRequest productRequest, User user) {
-        String productId = user.getId() + productRequest.getProductId();
+        String productId = createProductId(productRequest, user);
         log.info("handleCustomReview – fullProductId={}, reviewer={}", productId, productRequest.getReview().getName());
 
 
@@ -160,7 +161,7 @@ public class ProductController {
     }
 
     private ResponseEntity<Object> handleWithDetails(ProductRequest productRequest, User user) {
-        String productId = user.getId() + productRequest.getProductId();
+        String productId = createProductId(productRequest, user);
         log.info("handleWithDetails – fullProductId={}", productId);
         Product product = null;
         try {
@@ -195,6 +196,12 @@ public class ProductController {
                 .build();
         log.debug("handleWithDetails – returning ProductRespons fullProductId={}", productId);
         return ResponseEntity.status(HttpStatus.CREATED).body(productRespons);
+    }
+
+    //Create a unique id for use in database
+    @NotNull
+    private static String createProductId(ProductRequest productRequest, User user) {
+        return user.getId() + productRequest.getProductId();
     }
 
     private ResponseEntity<Object> handleProductOnly(ProductRequest productRequest, User user) {
