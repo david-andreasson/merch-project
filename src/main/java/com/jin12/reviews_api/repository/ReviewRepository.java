@@ -14,10 +14,9 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     /**
      * Hämtar alla recensioner för en viss produkt som har skrivits efter ett visst datum.
-     * Användbart för att hämta de senaste 2 månadernas recensioner.
      *
      * @param product  produkten som recensionerna tillhör
-     * @param fromDate
+     * @param fromDate från datumet man vill hämta
      * @return lista med matchande recensioner
      */
 

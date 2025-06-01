@@ -31,6 +31,7 @@ public class Product {
     @Column(nullable = true)
     private String category;
 
+    //Comma seperated values
     @Column(nullable = true)
     private String tags;
 

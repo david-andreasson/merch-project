@@ -1,9 +1,6 @@
 package com.jin12.reviews_api.service;
 
-import com.jin12.reviews_api.dto.weatherService.Weather;
 import com.jin12.reviews_api.dto.weatherService.WeatherResponse;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -40,7 +37,6 @@ public class WeatherService {
             return latestWeather;
         }
 
-//        String url = WEATHER_API_URL + "?lat=" + 63.18 + "&lon=" + 14.64 + "&appid=" + WEATHER_API_KEY;
         String url = WEATHER_API_URL + "?lat=" + getLat() + "&lon=" + getLon() + "&appid=" + WEATHER_API_KEY;
 
 
@@ -48,7 +44,6 @@ public class WeatherService {
         if (weatherResponse == null) {
             return latestWeather;
         }
-//        latestWeather = weatherRespons.getWeather()[0];
         latestWeather = weatherResponse.toString();
 
         latestWeatherTimestamp = currentTimeSeconds();
@@ -67,15 +62,4 @@ public class WeatherService {
     private long currentTimeSeconds() {
         return System.currentTimeMillis() / 1000;
     }
-
-//    public static void main(String[] args) throws InterruptedException {
-//        WeatherService weatherService = new WeatherService();
-//        System.out.println(weatherService.getWeather());
-//        System.out.println(weatherService.getWeather());
-//        System.out.println(weatherService.getWeather());
-//        Thread.sleep(SECONDS_BETWEEN_REQUESTS * 1000);
-//        System.out.println(weatherService.getWeather());
-//        System.out.println(weatherService.getWeather());
-//        System.out.println(weatherService.getWeather());
-//    }
 }

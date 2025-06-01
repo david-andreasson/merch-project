@@ -1,0 +1,92 @@
+@host = https://aireviews.drillbi.se
+@userPassUser = Demo1
+@userPassPassword = secret123
+
+### 1) Registrera med användarnamn & lösenord
+POST {{host}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "{{userPassUser}}",
+  "password": "{{userPassPassword}}",
+  "authType": "PASSWORD"
+}
+
+### 2) Logga in med användarnamn & lösenord
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{userPassUser}}",
+  "password": "{{userPassPassword}}",
+  "authType": "PASSWORD"
+}
+> {% client.global.set("token", response.body.token) %}
+
+### 3) Skapa produkt (productOnly)
+POST {{host}}/product
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "mode": "productOnly",
+  "productId": "T12345"
+}
+
+### 4) Skapa produkt + detaljer
+POST {{host}}/product
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "mode": "withDetails",
+  "productId": "T12346",
+  "productName": "Volvo",
+  "category": "Car",
+  "tags": ["V70", "Grön"]
+}
+
+### 5) Register API-key
+POST {{host}}/user/api-key
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+GbgMerchApiKey
+
+### 6) Skapa produkt + withUrl
+POST {{host}}/product
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "mode": "withUrl",
+  "productId": "bd2b8230-b411-4967-9f07-0e6633a51e73",
+  "productInfoUrl": "https://gbgmerch.mangopebble-f6036b59.northeurope.azurecontainerapps.io/api/basic/products/bd2b8230-b411-4967-9f07-0e6633a51e73"
+}
+
+### 7) Lägg till egen recension
+POST {{host}}/product
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "mode": "customReview",
+  "productId": "T12346",
+  "review": {
+    "name": "Anna",
+    "text": "Riktigt bra produkt!",
+    "rating": 5
+  }
+}
+
+### 8) Hämta recensioner för en produkt
+GET {{host}}/product/T12346
+Authorization: Bearer {{token}}
+
+### 9) Hämta recensioner för en produkt
+GET {{host}}/product/bd2b8230-b411-4967-9f07-0e6633a51e73
+Authorization: Bearer {{token}}
+
+### 10) Hämta recensioner för en produkt
+GET {{host}}/product/T00000
+Authorization: Bearer {{token}}
