@@ -15,6 +15,15 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * ReviewService handles operations related to product reviews.
+ * Key responsibilities:
+ * - Add a review for a product
+ * - Delete reviews
+ * - Fetch recent reviews (with AI fallback if below threshold)
+ * - Compute review statistics for a product
+ * - Package reviews and stats into a single response
+ */
 @Service
 public class ReviewService {
 
@@ -33,58 +42,85 @@ public class ReviewService {
         this.aiReviewService = aiReviewService;
     }
 
+    /**
+     * Adds a new review for the given productId.
+     * Fetches the Product entity, sets the review's product and date, then saves it.
+     *
+     * @param productId the full product ID (including user prefix)
+     * @param review    the Review entity to add
+     * @return the saved Review entity
+     * @throws RuntimeException if the product is not found
+     */
     public Review addReview(String productId, Review review) {
         log.debug("addReview – start, productId={}, reviewer={}", productId, review.getName());
-        // Hämta produkt baserat på productId
+        // Fetch product by ID, throw if missing
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> {
                     log.warn("addReview – produkt saknas productId={}", productId);
                     return new RuntimeException("Produkt finns inte");
                 });
 
-        // Sätt produkt för recensionen
+        // Associate review with product and set current date
         review.setProduct(product);
-        review.setDate(LocalDate.now());  // Sätt dagens datum som skapelsedatum
+        review.setDate(LocalDate.now());
         Review saved = reviewRepository.save(review);
         log.info("addReview – sparad recension id={} för productId={}", saved.getId(), productId);
         return saved;
     }
 
+    /**
+     * Deletes a single review by its ID.
+     *
+     * @param reviewId the ID of the review to delete
+     */
     public void deleteReview(Long reviewId) {
         log.info("deleteReview – försök radera reviewId={}", reviewId);
-        reviewRepository.deleteById(reviewId);  // Ta bort recensionen från databasen
+        reviewRepository.deleteById(reviewId);
         log.info("deleteReview – recension raderad reviewId={}", reviewId);
     }
 
+    /**
+     * Deletes all reviews associated with the given productId.
+     *
+     * @param productId the full product ID whose reviews should be deleted
+     */
     public void deleteReviewsByProductId(String productId) {
         log.info("deleteReviewsByProductId – försök radera recensioner för productId={}", productId);
         reviewRepository.deleteByProductId(productId);
         log.info("deleteReviewsByProductId – raderade recensioner för productId={}", productId);
     }
 
+    /**
+     * Fetches recent reviews for a product. Considers reviews from the past two months.
+     * If fewer than MIN_REVIEWS are found, generates additional AI reviews up to MIN_REVIEWS.
+     * Limits total reviews to MAX_REVIEWS before AI generation.
+     *
+     * @param productId the full product ID
+     * @return list of Review entities combining real and any AI-generated reviews
+     * @throws ProductNotFoundException if the product is not found
+     */
     public List<Review> getRecentReviews(String productId) throws IllegalArgumentException {
         log.debug("getRecentReviews – start för productId={}", productId);
-        // Hämta produkt baserat på productId
+        // Fetch product, or throw if missing
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> {
                     log.warn("getRecentReviews – produkt saknas productId={}", productId);
                     return new ProductNotFoundException("Product does not exist");
                 });
 
-        // Datumgräns för de senaste 2 månaderna
+        // Date threshold two months ago
         LocalDate fromDate = LocalDate.now().minusMonths(2);
 
-        // Hämtar alla recensioner för de senaste 2 månaderna
-        List<Review> allRecentReviews =
-                reviewRepository.findByProductAndDateAfter(product, fromDate);
+        // Fetch all reviews for this product since fromDate
+        List<Review> allRecentReviews = reviewRepository.findByProductAndDateAfter(product, fromDate);
         log.debug("getRecentReviews – hittade {} recensioner", allRecentReviews.size());
 
-        //Limit number of reviews to MAX_REVIEWS
+        // Limit to MAX_REVIEWS if more found
         if (allRecentReviews.size() > MAX_REVIEWS) {
             allRecentReviews = allRecentReviews.subList(0, MAX_REVIEWS);
         }
 
-        // Om vi har mindre än MIN_REVIEWS, ai-generera de som saknas
+        // If fewer than MIN_REVIEWS, generate missing reviews via AI
         int missing = MIN_REVIEWS - allRecentReviews.size();
         if (missing > 0) {
             log.info("getRecentReviews – genererar {} AI-recension(er) för productId={}", missing, productId);
@@ -101,44 +137,52 @@ public class ReviewService {
             e.printStackTrace();
         }
 
-        // Returnerar både gamla och nygenererade recensioner
+        // Return combined list of reviews
         log.debug("getRecentReviews – totala recensioner returnerade={}", allRecentReviews.size());
         return allRecentReviews;
     }
 
-    // Hämta statistik + senaste recensioner
+    /**
+     * Computes review statistics for a product:
+     * - Fetches reviews from the last two months; if fewer than MIN_REVIEWS, fetches top 10 by date.
+     * - Calculates average rating and retrieves the date of the most recent review.
+     *
+     * @param productId the full product ID
+     * @return a ReviewStatsResponse DTO containing statistics
+     * @throws RuntimeException if the product is not found
+     */
     public ReviewStatsResponse getProductStats(String productId) {
         log.debug("getProductStats – start för productId={}", productId);
-        // Hämta produkten
+        // Fetch product, or throw if missing
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> {
                     log.warn("getProductStats – produkt saknas productId={}", productId);
                     return new RuntimeException("Produkt finns inte");
                 });
 
-        // Definiera två månader bakåt
+        // Date threshold two months ago
         LocalDate twoMonthsAgo = LocalDate.now().minusMonths(2);
 
-        // Hämta recensioner från senaste två månaderna
+        // Fetch reviews from recent two months
         List<Review> recentReviews = reviewRepository.findByProductAndDateAfter(product, twoMonthsAgo);
         log.debug("getProductStats – hittade {} recensioner senaste två månaderna", recentReviews.size());
 
-        // Om färre än 5 recensioner → hämta senaste 10 recensionerna oavsett datum
+        // If fewer than MIN_REVIEWS, fetch top 10 most recent reviews regardless of date
         if (recentReviews.size() < MIN_REVIEWS) {
             log.info("getProductStats – färre än {} recensioner, hämtar topp 10 senaste", MIN_REVIEWS);
             recentReviews = reviewRepository.findTop10ByProductOrderByDateDesc(product);
         }
 
-        // Räkna ut medelbetyg (currentAverage)
+        // Calculate average rating
         double average = recentReviews.stream()
                 .mapToInt(Review::getRating)
                 .average()
                 .orElse(0.0);
 
-        // Hämta datum för senaste recension (lastReviewDate)
+        // Get date of the latest review (first in list if sorted by date desc)
         String lastReviewDate = recentReviews.isEmpty() ? null : recentReviews.get(0).getDate().toString();
 
-        // Bygg svaret (DTO)
+        // Build and return DTO
         ReviewStatsResponse response = new ReviewStatsResponse();
         response.setProductId(product.getProductId());
         response.setProductName(product.getProductName());
@@ -151,12 +195,18 @@ public class ReviewService {
         return response;
     }
 
-    // Wrapper som returnerar recensioner och statistik
+    /**
+     * Retrieves both reviews and statistics for a product.
+     * Uses getRecentReviews() and getProductStats() to populate a combined DTO.
+     *
+     * @param productId the full product ID
+     * @return a ReviewsRespons DTO containing both stats and review list
+     */
     public ReviewsRespons getReviewsForProduct(String productId) {
         log.debug("getReviewsForProduct – start för productId={}", productId);
-        // Hämta recensioner med befintlig metod
+        // Fetch recent reviews
         List<Review> entities = getRecentReviews(productId);
-        // Mappa till DTO
+        // Map Review entities to DTOs
         List<ReviewRespons> dtos = entities.stream()
                 .map(r -> ReviewRespons.builder()
                         .date(r.getDate())
@@ -165,9 +215,9 @@ public class ReviewService {
                         .text(r.getReviewText())
                         .build())
                 .toList();
-        // Hämta statistik med befintlig metod
+        // Fetch review statistics
         ReviewStatsResponse stats = getProductStats(productId);
-        // Paketera allt i ReviewsRespons
+        // Package into a combined response DTO
         ReviewsRespons result = ReviewsRespons.builder()
                 .productId(productId)
                 .stats(stats)

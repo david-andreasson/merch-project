@@ -4,6 +4,11 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 
+/**
+ * ApiKey entity storing a hashed API key for a user.
+ * keyHash is the encrypted or hashed version of the raw API key.
+ * expiresAt indicates when the key is no longer valid.
+ */
 @Data
 @Entity
 public class ApiKey {
