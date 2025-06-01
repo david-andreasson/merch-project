@@ -18,9 +18,16 @@ import java.time.LocalDate;
 import java.util.Map;
 import java.util.Random;
 
+/**
+ * Service responsible for generating reviews using AI or mock data.
+ * It builds a prompt based on product details and weather, then parses AI responses.
+ */
 @Service
 public class AiReviewService {
-    //     Hårdkodad prompt-mall som genererar en recension
+    /**
+     * Template for generating a prompt to request a product review from the AI.
+     * Inserts product name, category, tags, and weather into the JSON prompt.
+     */
     private static final String PROMPT_TEMPLATE = """
             Du är en kund som recenserar produkten:
             - Namn: %s
@@ -40,15 +47,25 @@ public class AiReviewService {
             %s
             """;
 
-    // Sätt true för mock-läge, false för produktion
+    /**
+     * If true, the service returns a mock review without calling the AI API.
+     * Set to false to enable real AI API calls.
+     */
     private static boolean USE_MOCK = false;
-    // Final togs bort för att kunna köra tester
 
     private final ObjectMapper objectMapper;
     private final WeatherService weatherService;
     private final String oneMinAiApiKey;
     private final String oneMinAiApiUrl;
 
+    /**
+     * Constructs the AiReviewService with dependencies and configuration values.
+     *
+     * @param weatherService   service used to retrieve current weather data
+     * @param objectMapper     JSON object mapper for parsing AI responses
+     * @param oneMinAiApiKey   API key for the one-minute AI service
+     * @param oneMinAiApiUrl   URL endpoint for the one-minute AI service
+     */
     public AiReviewService(
             WeatherService weatherService,
             ObjectMapper objectMapper,
@@ -61,10 +78,19 @@ public class AiReviewService {
         this.oneMinAiApiUrl = oneMinAiApiUrl;
     }
 
-    // Genererar en Review för produkten, antingen mockad eller via riktigt ai-anrop (när USE_MOCK=false och requestAiReview är implementerad).
+    /**
+     * Generates a Review entity for the given product.
+     * If USE_MOCK is true, returns a hardcoded review. Otherwise, builds a prompt and calls the AI API.
+     * Extracts JSON content from the AI response, converts it to a ReviewDto, then to a Review entity.
+     *
+     * @param product the product for which to generate a review
+     * @return the generated Review entity, with a random date within the last two months
+     * @throws IOException          if JSON parsing fails
+     * @throws InterruptedException if the HTTP request to the AI service is interrupted
+     */
     public Review generateReview(Product product) throws IOException, InterruptedException {
 
-        //Bygg prompt-strängen
+        // Build the prompt string
         String prompt = String.format(
                 PROMPT_TEMPLATE,
                 product.getProductName(),
@@ -73,7 +99,7 @@ public class AiReviewService {
                 weatherService.getWeather()
         );
 
-        // Hämta JSON-respons
+        // Retrieve JSON response (mock or real)
         String jsonResponse;
         if (USE_MOCK) {
             jsonResponse = """
@@ -87,18 +113,17 @@ public class AiReviewService {
             jsonResponse = requestAiReview(prompt);
         }
 
-        //If ai responds with more than a json-object, remove everything before and after brackets
+        // If AI response contains extra text, strip everything before and after JSON brackets
         if (!(jsonResponse.startsWith("{") && jsonResponse.endsWith("}"))) {
             int i = jsonResponse.indexOf("{");
             int j = jsonResponse.indexOf("}");
-            jsonResponse = jsonResponse.substring(i, j+1);
+            jsonResponse = jsonResponse.substring(i, j + 1);
         }
 
-        // Gör om JSON till ReviewDto
-        System.out.println(jsonResponse);
+        // Convert JSON to ReviewDto
         ReviewDto dto = objectMapper.readValue(jsonResponse, ReviewDto.class);
 
-        // Konvertera ReviewDto till Review-entitet
+        // Convert ReviewDto to Review entity
         Review review = new Review(dto.name(), dto.text(), dto.rating(), true);
         review.setDate(getRandomDate());
         review.setProduct(product);
@@ -106,7 +131,11 @@ public class AiReviewService {
         return review;
     }
 
-    //Return random date within the last two months
+    /**
+     * Generates a random date within the last two months from today.
+     *
+     * @return a random LocalDate between two months ago and today
+     */
     private LocalDate getRandomDate() {
         Random rand = new Random();
         LocalDate today = LocalDate.now();
@@ -116,6 +145,14 @@ public class AiReviewService {
         return LocalDate.ofEpochDay(randomDate);
     }
 
+    /**
+     * Sends a POST request to the AI service with the given prompt and returns the raw JSON response.
+     *
+     * @param prompt the prompt string to send to the AI API
+     * @return the raw response body as a JSON string
+     * @throws IOException          if sending or receiving the HTTP request fails
+     * @throws InterruptedException if the HTTP request is interrupted
+     */
     private String requestAiReview(String prompt) throws IOException, InterruptedException {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(oneMinAiApiKey);
@@ -132,7 +169,7 @@ public class AiReviewService {
                 )
         );
 
-        //Skicka POST och hämta rå JSON
+        // Send POST request and retrieve raw JSON string
         try (HttpClient client = HttpClient.newHttpClient()) {
             HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(oneMinAiApiUrl))
@@ -146,7 +183,13 @@ public class AiReviewService {
         }
     }
 
-    // Intern DTO-klass för JSON-parsning
+    /**
+     * Internal DTO class used for parsing AI JSON responses into Java objects.
+     *
+     * @param name   the name of the reviewer
+     * @param rating the rating given by the reviewer (1-5)
+     * @param text   the review text content
+     */
     private static record ReviewDto(
             String name,
             int rating,

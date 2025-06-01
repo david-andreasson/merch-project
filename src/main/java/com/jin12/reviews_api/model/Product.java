@@ -8,6 +8,11 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * Product entity representing a product record.
+ * productId is a combination of userId and client-visible ID to avoid collisions.
+ * Cascade and orphanRemoval ensure that removing a Product also removes its Reviews.
+ */
 @Entity
 @Data
 @Builder
@@ -26,10 +31,14 @@ public class Product {
     @Column(nullable = true)
     private String category;
 
+    //Comma seperated values
     @Column(nullable = true)
     private String tags;
 
-    // Tar man bort en product kommer alla reviews att tas bort med hjälp av cascade och orphanRemoval
+    /**
+     * List of reviews for this product.
+     * orphanRemoval=true deletes reviews when the product is deleted.
+     */
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviews;
 

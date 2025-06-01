@@ -8,10 +8,13 @@ import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDateTime;
 
-
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * Simple DTO for error response body sent to clients on exceptions.
+     * Automatically serialized to JSON with fields: timestamp, status, error, message, path.
+     */
     public static class ErrorResponse {
         private LocalDateTime timestamp;
         private int status;
@@ -26,8 +29,8 @@ public class GlobalExceptionHandler {
             this.message = message;
             this.path = path;
         }
-        // alla fält används automatiskt i HTTP-responsen och de serialiseras till klienten –
-        // oavsett om du själv anropar getter-metoderna eller inte.
+
+        // All getters are used by the JSON serializer to build the response
         public LocalDateTime getTimestamp() { return timestamp; }
         public int getStatus() { return status; }
         public String getError() { return error; }
@@ -35,6 +38,13 @@ public class GlobalExceptionHandler {
         public String getPath() { return path; }
     }
 
+    /**
+     * Handles ResourceNotFoundException by returning a 404 Not Found response.
+     *
+     * @param ex      the exception thrown when a requested resource is not found
+     * @param request the web request that caused the exception
+     * @return a ResponseEntity containing an ErrorResponse with 404 status
+     */
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex, WebRequest request) {
         ErrorResponse error = new ErrorResponse(
@@ -47,6 +57,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
+    /**
+     * Handles ApiKeyException by returning a 403 Forbidden response.
+     *
+     * @param ex      the exception thrown when API key validation fails
+     * @param request the web request that caused the exception
+     * @return a ResponseEntity containing an ErrorResponse with 403 status
+     */
     @ExceptionHandler(ApiKeyException.class)
     public ResponseEntity<ErrorResponse> handleApiKeyException(ApiKeyException ex, WebRequest request) {
         ErrorResponse error = new ErrorResponse(
@@ -59,6 +76,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 
+    /**
+     * Handles ApiKeyUpdateException by returning a 500 Internal Server Error response.
+     *
+     * @param ex      the exception thrown when updating an API key fails
+     * @param request the web request that caused the exception
+     * @return a ResponseEntity containing an ErrorResponse with 500 status
+     */
     @ExceptionHandler(ApiKeyUpdateException.class)
     public ResponseEntity<ErrorResponse> handleApiKeyUpdateException(ApiKeyUpdateException ex, WebRequest request) {
         ErrorResponse error = new ErrorResponse(
@@ -71,6 +95,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    /**
+     * Handles BadRequestException by returning a 400 Bad Request response.
+     *
+     * @param ex      the exception thrown for invalid client requests
+     * @param request the web request that caused the exception
+     * @return a ResponseEntity containing an ErrorResponse with 400 status
+     */
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> handleBadRequest(BadRequestException ex, WebRequest request) {
         ErrorResponse error = new ErrorResponse(
@@ -83,6 +114,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * Handles UnauthorizedException by returning a 401 Unauthorized response.
+     *
+     * @param ex      the exception thrown when authentication is missing or invalid
+     * @param request the web request that caused the exception
+     * @return a ResponseEntity containing an ErrorResponse with 401 status
+     */
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException ex, WebRequest request) {
         ErrorResponse error = new ErrorResponse(
@@ -95,6 +133,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
+    /**
+     * Handles ProductAlreadyExistsException by returning a 409 Conflict response.
+     *
+     * @param ex      the exception thrown when attempting to create a product that already exists
+     * @param request the web request that caused the exception
+     * @return a ResponseEntity containing an ErrorResponse with 409 status
+     */
     @ExceptionHandler(ProductAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleProductAlreadyExists(ProductAlreadyExistsException ex, WebRequest request) {
         ErrorResponse error = new ErrorResponse(
@@ -107,6 +152,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 
+    /**
+     * Handles ProductNotFoundException by returning a 404 Not Found response.
+     *
+     * @param ex      the exception thrown when a product is not found
+     * @param request the web request that caused the exception
+     * @return a ResponseEntity containing an ErrorResponse with 404 status
+     */
     @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleProductNotFoundException(ProductNotFoundException ex, WebRequest request) {
         ErrorResponse error = new ErrorResponse(
@@ -119,19 +171,23 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
-    // Hantera generella fel
+    /**
+     * Catches all other exceptions and returns a 500 Internal Server Error response.
+     *
+     * @param ex      the unexpected exception
+     * @param request the web request that caused the exception
+     * @return a ResponseEntity containing an ErrorResponse with 500 status
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAllExceptions(Exception ex, WebRequest request) {
         ErrorResponse error = new ErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                "Ett oväntat fel uppstod",
+                "An unexpected error occurred",
                 request.getDescription(false).replace("uri=", "")
         );
-        // Logga felet om du vill här
-        ex.printStackTrace();
-
+        ex.printStackTrace(); // Log stack trace for debugging
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
